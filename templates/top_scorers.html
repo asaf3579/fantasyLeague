@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roni Shmoni League 2023/24</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #702963;
+            color: white;
+        }
+
+        table {
+            width: 80%;
+            margin: auto;
+            border-collapse: collapse;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #702963;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #702963;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px;
+        }
+
+         .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+        }
+        .logo {
+            width: 60px; /* Adjust the size as needed */
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Roni Shmoni League 2023/24 - Top Scorer</h1>
+     <div class="logo-container">
+        <a href="/">
+            <img class="logo" src="{{ url_for('static', filename='logo_1.jpeg') }}" alt="Logo">
+        </a>
+    </div>
+    <a href="/" class="button">Standings</a>
+    <a href="/all-matches" class="button">All Matches</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Team Name</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for scorer in top_scorers %}
+            <tr>
+                <td>{{ scorer['rank'] }}</td>
+                <td>{{ scorer['name'] }}</td>
+                <td>{{ scorer['best_score'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

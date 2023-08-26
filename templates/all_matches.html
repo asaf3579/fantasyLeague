@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roni Shmoni League 2023/24</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #702963;
+            color: white;
+        }
+
+        /* Table styles */
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        /* Round heading styles */
+        h2 {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+        }
+        .logo {
+            width: 60px; /* Adjust the size as needed */
+        }
+         .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #702963; /* was #333 */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Roni Shmoni League 2023/24 - Matches</h1>
+    <div class="logo-container">
+        <a href="/">
+            <img class="logo" src="{{ url_for('static', filename='logo_3.jpeg') }}" alt="Logo">
+        </a>
+    </div>
+    <a href="/" class="button">Standings</a>
+    <a href="/top-scorers" class="button">Top Scorers</a>
+
+    <!-- Repeat for each round -->
+    {% for round_matches in match_data %}
+    <h2>Round {{ loop.index }}:</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in round_matches %}
+            <tr>
+                <td>{{ match['home_team'] }}</td>
+                <td>{{ match['away_team'] }}</td>
+                <td>{{ match['home_score'] }} - {{ match['away_score'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    <!-- Repeat for each round -->
+
+</body>
+</html>
