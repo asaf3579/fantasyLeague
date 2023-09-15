@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room</title>
+    <!-- Link the CSS file for styling -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #702963;
+            color: white;
+        }
+
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #702963;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px;
+        }
+
+         .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+        }
+        .logo {
+            width: 60px; /* Adjust the size as needed */
+        }
+
+}
+
+
+
+
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Roni Shmoni League 2023/24 - Trash Talk</h1>
+     <div class="logo-container">
+        <a href="/">
+            <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
+        </a>
+     </div>
+    <a href="/all-matches" class="button">All Matches</a>
+    <a href="/top-scorers" class="button">Top Scorers</a>
+    <a href="/update-data" class="button">Update Data</a>
+    <h2>Welcome, {{ current_user.username }}!</h2>
+    <h3>Chat Room</h3>
+    <div id="chat">
+        <div id="chat-messages">
+            {% for message in messages %}
+                <div class="message">
+                    <span class="timestamp">{{ message.timestamp }}</span>
+                    <span class="username">{{ message.user.username }}:</span>
+                    <span class="text">{{ message.text }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        <input type="text" id="message" placeholder="Type your message..." class="message-input">
+        <button onclick="sendMessage()" class="send-button">Send</button>
+    </div>
+
+    <!-- Logout link -->
+    <a href="{{ url_for('logout') }}">Logout</a>
+
+    <script>
+        function sendMessage() {
+            var messageInput = document.getElementById('message');
+            var message = messageInput.value;
+
+            fetch('/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    var chatMessages = document.getElementById('chat-messages');
+                    var messageDiv = document.createElement('div');
+                    messageDiv.className = 'message';
+                    messageDiv.innerHTML = `<span class="timestamp">${data.timestamp}</span> <span class="username">{{ current_user.username }}:</span> <span class="text">${message}</span>`;
+                    chatMessages.appendChild(messageDiv);
+                    messageInput.value = '';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

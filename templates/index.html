@@ -1,190 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Roni Shmoni League 2023/24</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Chat App</title>
+    <!-- Add your custom styles here -->
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             background-color: #f2f2f2;
+            text-align: center;
         }
+
         h1 {
-            text-align: center;
-            padding: 20px;
-            background-color: #702963;
-            color: white;
+            font-size: 36px;
+            color: #333;
+            margin-top: 100px;
         }
 
-        table {
-            width: 80%;
-            margin: auto;
-            border-collapse: collapse;
-            border: 1px solid #ccc;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        p {
+            font-size: 18px;
+            color: #777;
         }
 
-        th, td {
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #702963;
-            color: white;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        tr:hover {
-            background-color: #ddd;
-        }
-
-        .button {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #702963;
-            color: white;
+        a {
             text-decoration: none;
-            border-radius: 5px;
-            margin: 20px;
+            color: #007bff;
         }
 
-         .logo-container {
-            position: absolute;
-            top: 30px;
-            left: 10px;
+        a:hover {
+            text-decoration: underline;
         }
-        .logo {
-            width: 60px; /* Adjust the size as needed */
-        }
-
-        /* Add this to your <style> section */
-        .result-circle {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            text-align: center;
-            line-height: 20px;
-            margin-right: 5px;
-            font-size: 16px;
-        }
-
-        .win {
-            color: green;
-        }
-
-        .lose {
-            color: red;
-        }
-
-        .draw {
-            color: gray;
-        }
-
-        .not-played {
-            color: gray;
-        }
-
-
-        .club-cell {
-            vertical-align: middle;
-            padding-top: 0;
-            position: relative; /* Add position relative */
-        }
-
-        .club-logo-container {
-            position: absolute; /* Position the logo absolutely */
-            left: 0; /* Position to the beginning of the cell */
-            top: 50%; /* Vertically center the logo */
-            transform: translateY(-50%); /* Adjust for vertical alignment */
-            width: 1.5em; /* Adjust the width as needed */
-            height: 1.5em; /* Set the height to match the width */
-            border-radius: 50%; /* Make it circular */
-            overflow: hidden; /* Hide overflow if the logo is larger */
-            box-shadow: 0 0 4px rgba(0, 0, 0, 0.2); /* Add a subtle shadow for depth */
-        }
-
-        .club-logo {
-            max-height: 100%;
-            max-width: 100%;
-            display: block; /* Remove extra spacing */
-        }
-
-
-
-
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-... (integrity hash)" crossorigin="anonymous">
 </head>
 <body>
-    <h1>Roni Shmoni League 2023/24 - Standings</h1>
-     <div class="logo-container">
-        <a href="/">
-            <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
-        </a>
-    </div>
-    <a href="/all-matches" class="button">All Matches</a>
-    <a href="/top-scorers" class="button">Top Scorers</a>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Rank</th>
-                <th>Club</th>
-                <th>MP</th>
-                <th>W</th>
-                <th>D</th>
-                <th>L</th>
-                <th>Score</th>
-                <th>Last 3</th> <!-- Add this line -->
-
-            </tr>
-        </thead>
-        <tbody>
-            {% for team in teams %}
-            <tr>
-                <td>{{ team['rank'] }}</td>
-                <td class="club-cell">
-                <div class="club-logo-container">
-                    <img src="{{ url_for('static', filename=club_logos[team['club']]) }}" alt="{{ team['club'] }} Logo" class="club-logo">
-                </div>
-                {{ team['club'] }}
-            </td>
-                <td>{{ team['MP'] }}</td>
-                <td>{{ team['W'] }}</td>
-                <td>{{ team['D'] }}</td>
-                <td>{{ team['L'] }}</td>
-                <td>{{ team['score'] }}</td>
-
-
-
-
-                <td class="last-3">
-                    {% for result in team['last_3'] %}
-                        <span class="result-circle {% if result == 'W' %}win{% elif result == 'L' %}lose{% elif result == 'D' %}draw{% else %}not-played{% endif %}">
-                            {% if result == 'W' %}
-                                <i class="fas fa-check-circle"></i>
-                            {% elif result == 'L' %}
-                                <i class="fas fa-times-circle"></i>
-                            {% elif result == 'D' %}
-                                <i class="fas fa-minus-circle"></i>
-                            {% else %}
-                                <i class="fas fa-question-circle"></i>
-
-                            {% endif %}
-                        </span>
-                    {% endfor %}
-                </td>
-
-
-
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
+    <h1>Welcome to Chat App</h1>
+    <p>This is a simple chat application built with Flask.</p>
+    <p>Get started by <a href="{{ url_for('login') }}">logging in</a> or <a href="{{ url_for('register') }}">registering</a>.</p>
 </body>
 </html>

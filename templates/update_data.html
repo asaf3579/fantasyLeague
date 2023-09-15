@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Entry Form</title>
+
+   <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #702963;
+            color: #fff;
+            padding: 20px 0;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #702963;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        input[type="submit"] {
+            display: block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #702963;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #555;
+        }
+
+         .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+        }
+        .logo {
+            width: 60px; /* Adjust the size as needed */
+        }
+    </style>
+</head>
+<body>
+    <h1>Roni Shmoni League 2023/24 - Update Team Scores</h1>
+     <div class="logo-container">
+        <a href="/">
+            <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
+        </a>
+    </div>
+    <form action="/update-data-process" method="post">
+        <table>
+            <tr>
+                <th>Team</th>
+                <th>Score</th>
+            </tr>
+            <tr>
+                <td>עבדים FC Score:</td>
+                <td><input type="number" name="team1" min="0" required></td>
+            </tr>
+            <tr>
+                <td>Hapoel Sakal Score:</td>
+                <td><input type="number" name="team2" min="0" required></td>
+            </tr>
+            <tr>
+                <td>JakirFC Score:</td>
+                <td><input type="number" name="team3" min="0" required></td>
+            </tr>
+            <tr>
+                <td>בושנסקיניו Score:</td>
+                <td><input type="number" name="team4" min="0" required></td>
+            </tr>
+            <tr>
+                <td>YNWA NAAMAN Score:</td>
+                <td><input type="number" name="team5" min="0" required></td>
+            </tr>
+            <tr>
+                <td>INTROP FC Score:</td>
+                <td><input type="number" name="team6" min="0" required></td>
+            </tr>
+            <tr>
+                <td>AC MALKA Score:</td>
+                <td><input type="number" name="team7" min="0" required></td>
+            </tr>
+<!--            <tr>-->
+<!--                <td>Team 8</td>-->
+<!--                <td><input type="number" name="team8_score" min="0"></td>-->
+<!--            </tr>-->
+        </table>
+        <input type="submit" value="Submit Scores">
+    </form>
+</body>
+</html>
+
+
