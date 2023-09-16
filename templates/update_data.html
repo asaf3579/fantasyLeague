@@ -79,15 +79,27 @@
         .logo {
             width: 60px; /* Adjust the size as needed */
         }
+         .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #702963;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px;
+        }
     </style>
 </head>
 <body>
     <h1>Roni Shmoni League 2023/24 - Update Team Scores</h1>
      <div class="logo-container">
-        <a href="/">
+        <a href="/standing">
             <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
         </a>
     </div>
+    <a href="/standing" class="button">Standings</a>
+    <a href="/all-matches" class="button">All Matches</a>
+    <a href="/top-scorers" class="button">Top Scorers</a>
     <form action="/update-data-process" method="post">
         <table>
             <tr>

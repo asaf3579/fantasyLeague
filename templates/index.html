@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Chat App</title>
+    <title>Welcome to Roni Shmoni League 2023/24</title>
     <!-- Add your custom styles here -->
     <style>
         body {
-            font-family: Arial, sans-serif;
+           font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
             background-color: #f2f2f2;
             text-align: center;
         }
 
         h1 {
-            font-size: 36px;
-            color: #333;
-            margin-top: 100px;
+           text-align: center;
+            padding: 20px;
+            background-color: #702963;
+            color: white;
         }
 
         p {
@@ -31,10 +34,23 @@
         a:hover {
             text-decoration: underline;
         }
+          .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+        }
+        .logo {
+            width: 60px; /* Adjust the size as needed */
+        }
     </style>
 </head>
 <body>
-    <h1>Welcome to Chat App</h1>
+    <h1>Welcome to Roni Shmoni League 2023/24</h1>
+    <div class="logo-container">
+        <a href="/">
+            <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
+        </a>
+    </div>
     <p>This is a simple chat application built with Flask.</p>
     <p>Get started by <a href="{{ url_for('login') }}">logging in</a> or <a href="{{ url_for('register') }}">registering</a>.</p>
 </body>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,6 +39,7 @@
             width: 60px; /* Adjust the size as needed */
         }
 
+
 }
 
 
@@ -51,10 +52,11 @@
 <body>
     <h1>Roni Shmoni League 2023/24 - Trash Talk</h1>
      <div class="logo-container">
-        <a href="/">
+        <a href="/standing">
             <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
         </a>
      </div>
+    <a href="/standing" class="button">Standings</a>
     <a href="/all-matches" class="button">All Matches</a>
     <a href="/top-scorers" class="button">Top Scorers</a>
     <a href="/update-data" class="button">Update Data</a>
@@ -65,43 +67,49 @@
             {% for message in messages %}
                 <div class="message">
                     <span class="timestamp">{{ message.timestamp }}</span>
-                    <span class="username">{{ message.user.username }}:</span>
+                    <span class="username" style="color: {{ message.user.color }};">{{ message.user.username }}:</span>
                     <span class="text">{{ message.text }}</span>
                 </div>
             {% endfor %}
         </div>
-        <input type="text" id="message" placeholder="Type your message..." class="message-input">
+        <input type="text" id="message" placeholder="...Type your message" class="message-input" dir="rtl">
         <button onclick="sendMessage()" class="send-button">Send</button>
     </div>
 
     <!-- Logout link -->
-    <a href="{{ url_for('logout') }}">Logout</a>
+    <a href="{{ url_for('logout') }}" class="button">Logout</a>
 
     <script>
-        function sendMessage() {
-            var messageInput = document.getElementById('message');
-            var message = messageInput.value;
+    function sendMessage() {
+        var messageInput = document.getElementById('message');
+        var message = messageInput.value;
 
-            fetch('/send_message', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ text: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    var chatMessages = document.getElementById('chat-messages');
-                    var messageDiv = document.createElement('div');
-                    messageDiv.className = 'message';
-                    messageDiv.innerHTML = `<span class="timestamp">${data.timestamp}</span> <span class="username">{{ current_user.username }}:</span> <span class="text">${message}</span>`;
-                    chatMessages.appendChild(messageDiv);
-                    messageInput.value = '';
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        }
-    </script>
+        fetch('/send_message', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ text: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var chatMessages = document.getElementById('chat-messages');
+                var messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `<span class="timestamp">${data.timestamp}</span> <span class="username">{{ current_user.username }}:</span> <span class="text">${message}</span>`;
+                chatMessages.appendChild(messageDiv);
+                messageInput.value = '';
+
+                // Set hasUnreadMessages to true when a new message arrives
+                hasUnreadMessages = true;
+                localStorage.setItem('hasUnreadMessages', hasUnreadMessages);
+
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+
 </body>
 </html>

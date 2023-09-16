@@ -1,21 +1,24 @@
 from club import club
 from dbHandler import DBHandler
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+import random
 
+
+bold_colors = ["red", "black", "blue", "purple", "pink", "orange", "green", "brown", "yellow", "crimson", "indigo", "teal", "magenta", "turquoise"]
 
 
 club_logos = {
     'בושנסקיניו': 'macabi.jpeg',
-    'JakirFC': 'Barcelona.jpeg',
+    'JakirFC': 'JAKIR FC.jpeg',
     'YNWA NAAMAN': 'liverpool.jpeg',
-    'עבדים FC': 'united.jpeg',
-    'AC MALKA': 'milan.jpeg',
-    'Hapoel Sakal': 'hapoel.jpeg',
-    'INTROP FC': 'chealse.jpeg',
+    'עבדים FC': 'ABADIM FC.jpeg',
+    'AC MALKA': 'AC MALKA.jpeg',
+    'Hapoel Sakal': 'HAPOEL SAKAL.jpeg',
+    'INTROP FC': 'INTROP FC.jpeg',
 }
 
 club_to_team = {
@@ -41,7 +44,13 @@ team_to_club = {
 
 }
 
-
+def generate_random_color():
+    if bold_colors:
+        color = random.choice(bold_colors)
+        bold_colors.remove(color)  # Remove the chosen color from the list
+        return color
+    else:
+        return "black"  # Return None if the list is empty
 def generate_rounds(teams):
     num_teams = len(teams)
     num_rounds = num_teams - 1
@@ -62,39 +71,7 @@ def generate_rounds(teams):
     # print(fixture)
     return fixture
 
-# def update_from_sport5():
-#     chrome_options = Options()
-#     chrome_options.add_argument('--headless')
-#     driver_path = "chromedriver"
-#     url = "https://fantasyleague.sport5.co.il/#!/Rank/League/1?Id=319828"  # Replace with the actual URL
-#
-#     driver = webdriver.Chrome(options=chrome_options)
-#
-#     # URL of the webpage you want to scrape
-#
-#     try:
-#         # Send a GET request to the URL
-#         driver.get(url)
-#         wait = WebDriverWait(driver, 5)
-#         teams_to_point_so_far = {'בושנסקיניו': 0, "JakirFC": 0, "YNWA NAAMAN": 0, "עבדים FC": 0, "AC Malka": 0,
-#                                  "Hapoel Sakal": 0, "אינטרופ": 0}
-#         for i in range(2, 9):
-#             team_name = wait.until(EC.presence_of_element_located((By.XPATH,
-#                                                                    f'/html/body/div[3]/div[3]/section/div/div/div/user-rank-table/table/tbody/tr[{i}]/td[2]'))).text
-#             team_score = int(wait.until(EC.presence_of_element_located((By.XPATH,
-#                                                                         f'/html/body/div[3]/div[3]/section/div/div/div/user-rank-table/table/tbody/tr[{i}]/td[4]'))).text)
-#             teams_to_point_so_far[team_name] = team_score
-#
-#         sorted_teams = dict(sorted(teams_to_point_so_far.items(), key=lambda item: item[1], reverse=True))
-#         team_data = []
-#         for index, (team, score) in enumerate(sorted_teams.items(), start=1):
-#             team_data.append({'rank': index,
-#                               'name': team,
-#                               'best_score': score,})
-#     except requests.exceptions.RequestException as e:
-#         return f"Error: {e}"
-#
-#     return team_data
+
 
 
 
@@ -161,6 +138,9 @@ class User(UserMixin, db_chat.Model):
     id = db_chat.Column(db_chat.Integer, primary_key=True)
     username = db_chat.Column(db_chat.String(50), unique=True, nullable=False)
     password = db_chat.Column(db_chat.String(100), nullable=False)
+    color = db_chat.Column(db_chat.String(7))  # Add the color field to store user's chat name color
+
+
 
 # Create a Message model with a foreign key to User
 class Message(db_chat.Model):
@@ -175,6 +155,9 @@ class Message(db_chat.Model):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+
 @login_manager.user_loader
 def load_user(user_id):
     # This function should return the User object for the given user_id
@@ -191,6 +174,7 @@ def register():
         else:
             hashed_password = generate_password_hash(password, method='sha256')
             new_user = User(username=username, password=hashed_password)
+            new_user.color = generate_random_color()
             db_chat.session.add(new_user)
             db_chat.session.commit()
             flash('Registration successful. You can now log in.', 'success')
@@ -273,10 +257,7 @@ def all_matches():
             team = 'team'+str(i)
             current_round_results[team_to_club.get(team)] = round[i]
         teams_score_per_round.append(current_round_results)
-    print(teams_score_per_round)
 
-
-    print(results)
     match_data = []
     # rounds = generate_rounds(['בושנסקיניו', "JakirFC", "YNWA NAAMAN", "עבדים FC", "AC Malka",
     #                              "Hapoel Sakal", "אינטרופ", "NoBody"])
@@ -314,7 +295,6 @@ def top_scorers():
     sorted_data = sorted(score_table, key=lambda x: x['best_score'], reverse=True)
     for i, dict in enumerate(sorted_data,start=1):
         dict['rank'] = i
-    print(sorted_data)
 
     return render_template('top_scorers.html', top_scorers=sorted_data)
 
@@ -331,13 +311,10 @@ def process_form():
                  """
 
     data_from_rounds_scoreDB = db_handler.fetch_data(query)
-    print("1",data_from_rounds_scoreDB)
     data_from_sport5 = request.form
-    print("2",data_from_sport5)
 
     query2 = 'SELECT max("roundNumber") FROM public.rounds_score;'
     last_round = int(db_handler.fetch_data(query2)[0][0])
-    print("3",last_round)
     next_round = last_round + 1
     clubs_score_next_round = {'round': next_round}
     for team_number, (team, score) in enumerate(data_from_sport5.items()):
@@ -351,20 +328,17 @@ def process_form():
     clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'), clubs_score_next_round.get('team5'),
     clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'))
     db_handler.execute_query(insert_query, values)
-    print(clubs_score_next_round)
     update_club_info_table(clubs_score_next_round)
 
-    print(clubs_score_next_round)
-    print("Updating data...")
 
     # Retrieve scores from the form
-    team1_score = request.form.get('team1')
-    team2_score = request.form.get('team2')
-    team3_score = request.form.get('team3')
-    team4_score = request.form.get('team4')
-    team5_score = request.form.get('team5')
-    team6_score = request.form.get('team6')
-    team7_score = request.form.get('team7')
+    # team1_score = request.form.get('team1')
+    # team2_score = request.form.get('team2')
+    # team3_score = request.form.get('team3')
+    # team4_score = request.form.get('team4')
+    # team5_score = request.form.get('team5')
+    # team6_score = request.form.get('team6')
+    # team7_score = request.form.get('team7')
     # team8_score = request.form.get('team8')
 
     return redirect('/')

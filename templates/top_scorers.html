@@ -67,12 +67,14 @@
 <body>
     <h1>Roni Shmoni League 2023/24 - Top Scorer</h1>
      <div class="logo-container">
-        <a href="/">
-            <img class="logo" src="{{ url_for('static', filename='logo_1.jpeg') }}" alt="Logo">
+        <a href="/standing">
+            <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
         </a>
     </div>
     <a href="/standing" class="button">Standings</a>
     <a href="/all-matches" class="button">All Matches</a>
+    <a href="/chat" id="chat-button" class="button">Trash Talk </a>
+
 
     <table>
         <thead>
@@ -92,6 +94,9 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <a href="{{ url_for('logout') }}" class="button">Logout</a>
+
 
 </body>
 </html>

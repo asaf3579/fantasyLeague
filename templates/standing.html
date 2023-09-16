@@ -125,14 +125,14 @@
 <body>
     <h1>Roni Shmoni League 2023/24 - Standings</h1>
      <div class="logo-container">
-        <a href="/">
+        <a href="/standing">
             <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
         </a>
     </div>
     <a href="/all-matches" class="button">All Matches</a>
     <a href="/top-scorers" class="button">Top Scorers</a>
+    <a href="/chat" id="chat-button" class="button">Trash Talk </a>
     <a href="/update-data" class="button">Update Data</a>
-    <a href="/chat" class="button">Trash Talk</a>
 
     <table>
         <thead>
@@ -189,6 +189,51 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <a href="{{ url_for('logout') }}" class="button">Logout</a>
+
+
+<!--<script>-->
+<!--      // Check if there are unread messages in local storage-->
+<!--    var hasUnreadMessagesLocalStorage = localStorage.getItem('hasUnreadMessages') === 'true';-->
+
+<!--    // Check if there are unread messages in the session-->
+<!--    var hasUnreadMessagesSession = {{ session.get('hasUnreadMessages', 'false')|tojson|safe }} === 'true';-->
+
+<!--    // Function to hide the indicator and update local storage and session-->
+<!--    // Function to hide the indicator and update local storage and session-->
+<!--    function hideUnreadIndicator() {-->
+<!--        var unreadIndicator = document.getElementById('unread-indicator');-->
+<!--        unreadIndicator.style.display = 'none';-->
+<!--        // Update local storage to indicate that the user has seen the messages-->
+<!--        localStorage.setItem('hasUnreadMessages', 'false');-->
+<!--        // Update the session on the server-side to reset unread messages status-->
+<!--        fetch('/reset_unread_status', {-->
+<!--            method: 'POST',-->
+<!--            headers: {-->
+<!--                'Content-Type': 'application/json'-->
+<!--            }-->
+<!--        })-->
+<!--        .catch(error => console.error('Error:', error));-->
+<!--    }-->
+
+<!--    // Check if there are unread messages and show the indicator accordingly-->
+<!--    if (hasUnreadMessagesLocalStorage || hasUnreadMessagesSession) {-->
+<!--        var unreadIndicator = document.getElementById('unread-indicator');-->
+<!--        unreadIndicator.style.display = 'inline';-->
+<!--    }-->
+
+<!--    // Add a click event listener to the chat button-->
+<!--    var chatButton = document.getElementById('chat-button');-->
+<!--    chatButton.addEventListener('click', hideUnreadIndicator);-->
+
+
+<!--</script>-->
+
+
+
+
+
 
 </body>
 </html>
