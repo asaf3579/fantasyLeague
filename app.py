@@ -358,4 +358,5 @@ if __name__ == '__main__':
                            port=5432)
     with app.app_context():
         db_chat.create_all()
-    app.run(debug=True)
+    # app.run(debug=True)
+    app.run(host='0.0.0.0', port=8000)
