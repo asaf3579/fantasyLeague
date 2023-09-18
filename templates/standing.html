@@ -132,7 +132,10 @@
     <a href="/all-matches" class="button">All Matches</a>
     <a href="/top-scorers" class="button">Top Scorers</a>
     <a href="/chat" id="chat-button" class="button">Trash Talk </a>
+    {% if current_user.username == 'asaf' %}
     <a href="/update-data" class="button">Update Data</a>
+    {% endif %}
+<!--    <a href="/update-data" class="button">Update Data</a>-->
 
     <table>
         <thead>

@@ -31,6 +31,26 @@ class DBHandler:
             print(f"Error fetching data: {e}")
             return None
 
+    def create_users_messages_table(self):
+        self.cursor.execute('''
+    CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password VARCHAR(100) NOT NULL,
+        color VARCHAR(7)
+    );
+''')
+
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY,
+                text VARCHAR(200),
+                timestamp TIMESTAMP DEFAULT NOW(),
+                user_id INTEGER REFERENCES users(id)
+            );
+        ''')
+        self.connection.commit()
+
     def close_connection(self):
         self.cursor.close()
         self.connection.close()

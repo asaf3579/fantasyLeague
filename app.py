@@ -11,7 +11,7 @@ import random
 
 
 
-bold_colors = ["red", "black", "blue", "purple", "pink", "orange", "green", "brown", "yellow", "crimson", "indigo", "teal", "magenta", "turquoise"]
+bold_colors = ["red", "black", "blue", "purple", "pink", "orange", "green", "brown", "crimson", "indigo", "teal", "magenta", "turquoise"]
 
 
 club_logos = {
@@ -136,13 +136,26 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 #
 
+
+
 class User(UserMixin, db_chat.Model):
     id = db_chat.Column(db_chat.Integer, primary_key=True)
     username = db_chat.Column(db_chat.String(50), unique=True, nullable=False)
     password = db_chat.Column(db_chat.String(100), nullable=False)
     color = db_chat.Column(db_chat.String(7))  # Add the color field to store user's chat name color
 
-
+# def get_user_by_name(user_name):
+#     # Fetch user data from your data source based on user_id
+#     select_query = "SELECT id, username, password FROM users WHERE username = %s;"
+#     values = (username,)
+#     user_data = db_handler.fetch_data(select_query, values)
+#
+#     if user_data:
+#         # Create a User instance with user data and return it
+#         user = User(user_id=user_data[0][0], username=user_data[0][1], password=user_data[0][2])
+#         return user
+#     else:
+#         return None
 
 # Create a Message model with a foreign key to User
 class Message(db_chat.Model):
@@ -162,9 +175,35 @@ def index():
 
 @login_manager.user_loader
 def load_user(user_id):
-    # This function should return the User object for the given user_id
+      # Replace with your own function
     return User.query.get(int(user_id))
 
+
+#new register with postgress
+# @app.route('/register', methods=['GET','POST'])
+# def register():
+#     if request.method == 'POST':
+#         username = request.form.get('username')
+#         password = request.form.get('password')
+#
+#         if not username or not password:
+#             flash('Username and password are required.', 'error')
+#         else:
+#             # Hash the password (you can use bcrypt as you did before)
+#             hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+#
+#             # Insert user data into the PostgreSQL users table
+#             insert_query = "INSERT INTO users (username, password, color) VALUES (%s, %s, %s);"
+#             # values = (username, hashed_password, generate_random_color())
+#             values = (username, password, generate_random_color())
+#             db_handler.execute_query(insert_query, values)
+#
+#             flash('Registration successful. You can now log in.', 'success')
+#             return redirect(url_for('login'))
+#
+#     return render_template('register.html')
+
+# worked registration below
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -181,11 +220,51 @@ def register():
             new_user.color = generate_random_color()
             db_chat.session.add(new_user)
             db_chat.session.commit()
+            #for backup postgresql
             flash('Registration successful. You can now log in.', 'success')
+            insert_query = "INSERT INTO users (username, password, color) VALUES (%s, %s, %s);"
+            # values = (username, hashed_password, generate_random_color())
+            values = (username, password, new_user.color)
+            db_handler.execute_query(insert_query, values)
             return redirect(url_for('login'))
 
     return render_template('register.html')
 
+
+#login route with postgressql
+
+# @app.route('/login', methods=['GET','POST'])
+# def login():
+#     if request.method == 'POST':
+#         username = request.form.get('username')
+#         password = request.form.get('password')
+#
+#         # Fetch user data from the PostgreSQL users table
+#         select_query = "SELECT id, username, password FROM users WHERE username = %s;"
+#         values = (username,)
+#         user_data = db_handler.fetch_data(select_query, values)
+#
+#         # bcrypt.checkpw(password.encode('utf-8'), user.password):
+#         if user_data and password == user_data[0][2]:
+#             print(user_data)
+#             # Log in the user
+#             user =User(int(user_data[0][0]))
+#             # user = User.query.get(user_id)
+#             # print(user)
+#             # if user is None:
+#             #     user = User(id=user_id)
+#
+#             login_user(user)
+#             session['user_id'] = user.id
+#             session['username'] = username
+#             return redirect(url_for('standing'))
+#         else:
+#             flash('Invalid username or password.', 'error')
+#
+#     return render_template('login.html')
+
+
+# login route which worked below
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -194,15 +273,34 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-
-        # if user and check_password_hash(user.password, password):
-        if user and bcrypt.checkpw(password.encode('utf-8'), user.password):
-            login_user(user)
-            return redirect(url_for('standing'))
+        if user:
+            # Check the password (you should use proper password hashing here)
+            if bcrypt.checkpw(password.encode('utf-8'), user.password):
+                login_user(user)
+                return redirect(url_for('standing'))
+            else:
+                flash('Invalid username or password.', 'error')
         else:
-            flash('Invalid username or password.', 'error')
+            select_query = "SELECT id, username, password, color FROM users WHERE username = %s;"
+            values = (username,)
+            user_data = db_handler.fetch_data(select_query, values)
+
+            if user_data and username == user_data[0][1] and password == user_data[0][2]:
+                # User exists in PostgreSQL but not in SQLAlchemy
+                hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+                new_user = User(username=username, password=hashed_password)
+                new_user.color = user_data[0][3]
+                db_chat.session.add(new_user)
+                db_chat.session.commit()
+
+                login_user(new_user)  # Log in the newly created user
+                return redirect(url_for('standing'))
+            else:
+                flash('Invalid username or password.', 'error')
 
     return render_template('login.html')
+
 
 @app.route('/logout')
 @login_required
@@ -227,9 +325,50 @@ def send_message():
         message = Message(text=text, user=current_user)
         db_chat.session.add(message)
         db_chat.session.commit()
+        # #for backup in postgresql
+        # insert_query = "INSERT INTO messages (text, user_id) VALUES (%s, %s);"
+        # values = (text, current_user.id)
+        # db_handler.execute_query(insert_query, values)
         return jsonify(success=True, timestamp=message.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
     else:
         return jsonify(success=False, error='Message text is required')
+# Sending a message
+# @app.route('/send_message', methods=['POST'])
+# @login_required
+# def send_message():
+#     data = request.get_json()
+#     text = data.get('text')
+#
+#     if text:
+#         # Insert the message into the PostgreSQL messages table
+#         insert_query = "INSERT INTO messages (text, user_id) VALUES (%s, %s);"
+#         values = (text, current_user.id)
+#         db_handler.execute_query(insert_query, values)
+#
+#         return jsonify(success=True, timestamp=datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S'))
+#     else:
+#         return jsonify(success=False, error='Message text is required')
+
+# Fetching chat messages
+# Fetching chat messages
+# @app.route('/chat')
+# @login_required
+# def chat():
+#
+#     # Retrieve chat messages from the PostgreSQL messages table
+#     select_query = '''
+#         SELECT messages.text, messages.timestamp, users.color, users.username
+#         FROM messages
+#         INNER JOIN users ON messages.user_id = users.id
+#         ORDER BY messages.timestamp ASC
+#         LIMIT 50;
+#     '''
+#     messages_data = db_handler.fetch_data(select_query)
+#     # messages = Message.query.all()
+#     # print(messages)
+#     print("============")
+#     print(messages_data)
+#     return render_template('chat.html', messages=messages_data)
 
 @app.route('/standing')
 def standing():
@@ -356,7 +495,8 @@ if __name__ == '__main__':
     host = sys.argv[3]
     db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
                            port=5432)
+    db_handler.create_users_messages_table()
     with app.app_context():
         db_chat.create_all()
-    # app.run(debug=True)
-    app.run(host='0.0.0.0', port=8000)
+    app.run(debug=True)
+    # app.run(host='0.0.0.0', port=8000)
