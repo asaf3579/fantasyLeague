@@ -3,4 +3,4 @@ flask_sqlalchemy
 flask_login
 bcrypt
 psycopg2
-gunicorn:
+gunicorn

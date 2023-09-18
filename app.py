@@ -10,8 +10,6 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import random
 
-
-
 bold_colors = ["red", "black", "blue", "purple", "pink", "orange", "green", "brown", "crimson", "indigo", "teal", "magenta", "turquoise"]
 
 
