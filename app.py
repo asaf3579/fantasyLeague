@@ -45,14 +45,14 @@ team_to_club = {
     'NoBody': 'NoBody',
 
 }
-with open("config.json", "r") as json_file:
-    data = json.load(json_file)
-
-database_host = data["host"]
-database_username = data["username"]
-database_password = data["password"]
-print(database_host,database_username,database_password)
-db_handler = DBHandler(database="init_fanatasy", user=database_username, password=database_password, host=database_host,
+# with open("config.json", "r") as json_file:
+#     data = json.load(json_file)
+#
+# database_host = data["host"]
+# database_username = data["username"]
+# database_password = data["password"]
+# print(database_host,database_username,database_password)
+db_handler = DBHandler(database="init_fanatasy", user="asaf", password="Naaman3579!", host="fantasy-postgres.csha90eqdzve.eu-north-1.rds.amazonaws.com",
                        port=5432)
 db_handler.create_users_messages_table()
 def generate_random_color():
@@ -138,6 +138,9 @@ app.config['teams'] = ['עבדים FC', "Hapoel Sakal", "JakirFC", "בושנסק
 app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with your secret key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 db_chat = SQLAlchemy(app)
+
+with app.app_context():
+    db_chat.create_all()
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -497,14 +500,13 @@ def process_form():
     return redirect('/standing')
 
 
-if __name__ == '__main__':
-    # username = sys.argv[1]
-    # password = sys.argv[2]
-    # host = sys.argv[3]
-    # db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
-    #                        port=5432)
-    db_handler.create_users_messages_table()
-    with app.app_context():
-        db_chat.create_all()
-    # app.run(debug=True)
-    app.run(host='0.0.0.0', port=8000)
+# if __name__ == '__main__':
+#     # username = sys.argv[1]
+#     # password = sys.argv[2]
+#     # host = sys.argv[3]
+#     # db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
+#     #                        port=5432)
+#     # db_handler.create_users_messages_table()
+#
+#     # app.run(debug=True)
+#     # app.run(host='0.0.0.0', port=8000)
