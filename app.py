@@ -498,5 +498,5 @@ if __name__ == '__main__':
     db_handler.create_users_messages_table()
     with app.app_context():
         db_chat.create_all()
-    app.run(debug=True)
-    # app.run(host='0.0.0.0', port=8000)
+    # app.run(debug=True)
+    app.run(host='0.0.0.0', port=8000)
