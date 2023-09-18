@@ -1,3 +1,4 @@
+import json
 import sys
 import bcrypt
 from club import club
@@ -46,7 +47,16 @@ team_to_club = {
     'NoBody': 'NoBody',
 
 }
+with open("config.json", "r") as json_file:
+    data = json.load(json_file)
 
+database_host = data["host"]
+database_username = data["username"]
+database_password = data["password"]
+print(database_host,database_username,database_password)
+db_handler = DBHandler(database="init_fanatasy", user=database_username, password=database_password, host=database_host,
+                       port=5432)
+db_handler.create_users_messages_table()
 def generate_random_color():
     if bold_colors:
         color = random.choice(bold_colors)
@@ -490,11 +500,11 @@ def process_form():
 
 
 if __name__ == '__main__':
-    username = sys.argv[1]
-    password = sys.argv[2]
-    host = sys.argv[3]
-    db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
-                           port=5432)
+    # username = sys.argv[1]
+    # password = sys.argv[2]
+    # host = sys.argv[3]
+    # db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
+    #                        port=5432)
     db_handler.create_users_messages_table()
     with app.app_context():
         db_chat.create_all()
