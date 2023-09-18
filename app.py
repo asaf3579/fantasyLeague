@@ -1,11 +1,11 @@
 import sys
-
+import bcrypt
 from club import club
 from dbHandler import DBHandler
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
+# from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 import random
 
@@ -174,7 +174,9 @@ def register():
         if not username or not password:
             flash('Username and password are required.', 'error')
         else:
-            hashed_password = generate_password_hash(password, method='sha256')
+            # hashed_password = generate_password_hash(password, method='sha256')
+            hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
             new_user = User(username=username, password=hashed_password)
             new_user.color = generate_random_color()
             db_chat.session.add(new_user)
@@ -193,7 +195,8 @@ def login():
         user = User.query.filter_by(username=username).first()
 
 
-        if user and check_password_hash(user.password, password):
+        # if user and check_password_hash(user.password, password):
+        if user and bcrypt.checkpw(password.encode('utf-8'), user.password):
             login_user(user)
             return redirect(url_for('standing'))
         else:

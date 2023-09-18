@@ -2,5 +2,4 @@ flask
 flask_sqlalchemy
 flask_login
 bcrypt
-werkzeug.security
 psycopg2
