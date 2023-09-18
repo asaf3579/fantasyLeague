@@ -1,5 +1,6 @@
 flask
 flask_sqlalchemy
 flask_login
-werkzeug.security>=1.0,<3.0
+bcrypt
+werkzeug.security
 psycopg2
