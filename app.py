@@ -1,3 +1,5 @@
+import sys
+
 from club import club
 from dbHandler import DBHandler
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
@@ -8,13 +10,14 @@ from datetime import datetime
 import random
 
 
+
 bold_colors = ["red", "black", "blue", "purple", "pink", "orange", "green", "brown", "yellow", "crimson", "indigo", "teal", "magenta", "turquoise"]
 
 
 club_logos = {
-    'בושנסקיניו': 'macabi.jpeg',
+    'בושנסקיניו': 'ob7.jpeg',
     'JakirFC': 'JAKIR FC.jpeg',
-    'YNWA NAAMAN': 'liverpool.jpeg',
+    'YNWA NAAMAN': 'YNWA_NAAMAN.jpeg',
     'עבדים FC': 'ABADIM FC.jpeg',
     'AC MALKA': 'AC MALKA.jpeg',
     'Hapoel Sakal': 'HAPOEL SAKAL.jpeg',
@@ -131,9 +134,8 @@ db_chat = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+#
 
-db_handler = DBHandler(database="fantasyLeague", user="postgres", password='naaman3579', host="localhost",
-                       port=5432)
 class User(UserMixin, db_chat.Model):
     id = db_chat.Column(db_chat.Integer, primary_key=True)
     username = db_chat.Column(db_chat.String(50), unique=True, nullable=False)
@@ -305,6 +307,7 @@ def update_data():
 
 @app.route('/update-data-process', methods=['GET','POST'])
 def process_form():
+
     query = """
                  SELECT sum(team1), sum(team2), sum(team3), sum(team4), sum(team5), sum(team6), sum(team7)
                  FROM public.rounds_score;
@@ -341,10 +344,15 @@ def process_form():
     # team7_score = request.form.get('team7')
     # team8_score = request.form.get('team8')
 
-    return redirect('/')
+    return redirect('/standing')
 
 
 if __name__ == '__main__':
+    username = sys.argv[1]
+    password = sys.argv[2]
+    host = sys.argv[3]
+    db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
+                           port=5432)
     with app.app_context():
         db_chat.create_all()
     app.run(debug=True)
