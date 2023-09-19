@@ -45,14 +45,13 @@ team_to_club = {
     'NoBody': 'NoBody',
 
 }
-# with open("config.json", "r") as json_file:
-#     data = json.load(json_file)
-#
-# database_host = data["host"]
-# database_username = data["username"]
-# database_password = data["password"]
-# print(database_host,database_username,database_password)
-db_handler = DBHandler(database="init_fanatasy", user="asaf", password="Naaman3579!", host="fantasy-postgres.csha90eqdzve.eu-north-1.rds.amazonaws.com",
+with open("config.json", "r") as json_file:
+    data = json.load(json_file)
+
+database_host = data["host"]
+database_username = data["username"]
+database_password = data["password"]
+db_handler = DBHandler(database="init_fanatasy", user=database_username, password=database_password, host=database_host,
                        port=5432)
 db_handler.create_users_messages_table()
 def generate_random_color():
@@ -324,8 +323,16 @@ def logout():
 @app.route('/chat')
 @login_required
 def chat():
+    select_query = '''
+            SELECT messages.text, messages.timestamp, messages.color, messages.user_name
+            FROM messages
+            ORDER BY messages.timestamp ASC
+            LIMIT 50;
+        '''
+    messages_data = db_handler.fetch_data(select_query)
     messages = Message.query.all()
-    return render_template('chat.html', messages=messages)
+
+    return render_template('chat.html', messages=messages_data)
 
 @app.route('/send_message', methods=['POST'])
 @login_required
@@ -337,9 +344,9 @@ def send_message():
         db_chat.session.add(message)
         db_chat.session.commit()
         # #for backup in postgresql
-        # insert_query = "INSERT INTO messages (text, user_id) VALUES (%s, %s);"
-        # values = (text, current_user.id)
-        # db_handler.execute_query(insert_query, values)
+        insert_query = "INSERT INTO messages (text, user_id, user_name, color) VALUES (%s, %s, %s, %s);"
+        values = (text, current_user.id, current_user.username,current_user.color)
+        db_handler.execute_query(insert_query, values)
         return jsonify(success=True, timestamp=message.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
     else:
         return jsonify(success=False, error='Message text is required')
@@ -500,13 +507,14 @@ def process_form():
     return redirect('/standing')
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
 #     # username = sys.argv[1]
 #     # password = sys.argv[2]
 #     # host = sys.argv[3]
 #     # db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
 #     #                        port=5432)
-#     # db_handler.create_users_messages_table()
-#
-#     # app.run(debug=True)
-#     # app.run(host='0.0.0.0', port=8000)
+    with app.app_context():
+        db_chat.create_all()
+
+    # app.run(debug=True)
+    app.run(host='0.0.0.0', port=8000)

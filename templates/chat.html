@@ -65,9 +65,9 @@
         <div id="chat-messages">
             {% for message  in messages %}
             <div class="message">
-                <span class="timestamp">{{  message.timestamp }}</span>
-                <span class="username" style="color: {{ message.user.color }};">{{  message.user.username }}:</span>
-                <span class="text">{{ message.text }}</span>
+                <span class="timestamp">{{  message[1] }}</span>
+                <span class="username" style="color: {{ message[2] }};">{{  message[3] }}:</span>
+                <span class="text">{{ message[0] }}</span>
             </div>
         {% endfor %}
         </div>

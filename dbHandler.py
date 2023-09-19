@@ -46,7 +46,9 @@ class DBHandler:
                 id SERIAL PRIMARY KEY,
                 text VARCHAR(200),
                 timestamp TIMESTAMP DEFAULT NOW(),
-                user_id INTEGER REFERENCES users(id)
+                user_id INTEGER REFERENCES users(id),
+                user_name VARCHAR(50),
+                color VARCHAR(7) 
             );
         ''')
         self.connection.commit()
