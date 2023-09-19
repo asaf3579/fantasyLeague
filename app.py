@@ -330,6 +330,7 @@ def chat():
             LIMIT 50;
         '''
     messages_data = db_handler.fetch_data(select_query)
+    print(messages_data)
     messages = Message.query.all()
 
     return render_template('chat.html', messages=messages_data)
