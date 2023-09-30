@@ -48,6 +48,7 @@ team_to_club = {
 with open("config.json", "r") as json_file:
     data = json.load(json_file)
 
+
 database_host = data["host"]
 database_username = data["username"]
 database_password = data["password"]
@@ -94,11 +95,11 @@ def get_score_in_round(index,teams_score_per_round,team):
 def update_query(club_names_to_club):
     update_query = """
         UPDATE clubs_info
-        SET \"bestScore\" = %s, \"winCount\" = %s, \"loseCount\" = %s, \"drawCount\" = %s, \"lastThreeMatches\" = %s
+        SET \"bestScore\" = %s, \"winCount\" = %s, \"loseCount\" = %s, \"drawCount\" = %s, \"lastThreeMatches\" = %s, \"GF\" = %s, \"GA\" = %s
         WHERE \"name\"= %s;  
     """
     for club_name, club_class in club_names_to_club.items():
-        values = (club_class.best_score,club_class.win_count,club_class.lose_count,club_class.draw_count,club_class.last_three_matches,club_class.name)
+        values = (club_class.best_score,club_class.win_count,club_class.lose_count,club_class.draw_count,club_class.last_three_matches,club_class.GF,club_class.GA,club_class.name)
         db_handler.execute_query(update_query,values)
 
 def update_club_info_table(clubs_score_next_round):
@@ -106,7 +107,7 @@ def update_club_info_table(clubs_score_next_round):
     club_info = db_handler.fetch_data(select_query)
     club_names_to_club = {}
     for team in club_info:
-        club_names_to_club[team[0]] = club(team[0], team[1], team[2], team[3], team[4], team[5])
+        club_names_to_club[team[0]] = club(team[0], team[1], team[2], team[3], team[4], team[5],team[6],team[7])
     #todo: implement a function which update the club info table according to the last update.
     fixture = generate_rounds(app.config['teams'])
     round_to_update_matches = fixture[clubs_score_next_round.get('round') - 1]
@@ -114,17 +115,19 @@ def update_club_info_table(clubs_score_next_round):
         team_number_home = club_to_team.get(match[0])
         team_number_away = club_to_team.get(match[1])
         if team_number_home != "NoBody" and team_number_away != "NoBody":
+            socre_home_team = clubs_score_next_round.get(team_number_home)
+            score_away_team = clubs_score_next_round.get(team_number_away)
             if clubs_score_next_round.get(team_number_home) > clubs_score_next_round.get(team_number_away):
-                club_names_to_club.get(match[0]).IncreaseWin()
-                club_names_to_club.get(match[1]).IncreaseLose()
+                club_names_to_club.get(match[0]).IncreaseWin(socre_home_team,score_away_team)
+                club_names_to_club.get(match[1]).IncreaseLose(score_away_team,socre_home_team)
                 #todo update home_team with a win and update away_team with a lose
             elif clubs_score_next_round.get(team_number_home) < clubs_score_next_round.get(team_number_away):
-                club_names_to_club.get(match[1]).IncreaseWin()
-                club_names_to_club.get(match[0]).IncreaseLose()
+                club_names_to_club.get(match[1]).IncreaseWin(score_away_team,socre_home_team)
+                club_names_to_club.get(match[0]).IncreaseLose(socre_home_team,score_away_team)
                 #todo update away_team with a win and update home_team with a lose
             else:
-                club_names_to_club.get(match[0]).IncreaseDraw()
-                club_names_to_club.get(match[1]).IncreaseDraw()
+                club_names_to_club.get(match[0]).IncreaseDraw(socre_home_team,score_away_team)
+                club_names_to_club.get(match[1]).IncreaseDraw(socre_home_team,score_away_team)
                 #todo update draw
     update_query(club_names_to_club)
 
@@ -397,15 +400,15 @@ def standing():
     results = db_handler.fetch_data(select_query)
     all_clubs = []
     for team in results:
-        Myclub = club(team[0],team[1],team[2],team[3],team[4],team[5])
+        Myclub = club(team[0],team[1],team[2],team[3],team[4],team[5],team[6],team[7])
         all_clubs.append(Myclub)
     for i in range(len(all_clubs)):
         team_data.append(
-            {'club': all_clubs[i].name, 'MP': all_clubs[i].GetMP(), 'W': all_clubs[i].win_count, 'D': all_clubs[i].draw_count, 'L': all_clubs[i].lose_count, 'score': all_clubs[i].getScore(), 'last_3': all_clubs[i].last_three_matches})
+            {'club': all_clubs[i].name, 'MP': all_clubs[i].GetMP(), 'W': all_clubs[i].win_count, 'D': all_clubs[i].draw_count, 'L': all_clubs[i].lose_count,'GF': all_clubs[i].GF,'GA': all_clubs[i].GA,'GD': all_clubs[i].GetGD(), 'score': all_clubs[i].getScore(), 'last_3': all_clubs[i].last_three_matches})
     # for i,team in enumerate(teams, start=1):
     #     team_data.append({'rank': i,'club': team,'MP': 0,'W': 0,'D': 0,'L': 0,'score': 0,'last_3': ['W', 'D', 'np']})
     # team_data.pop()
-    sorted_data = sorted(team_data, key=lambda x: x['score'], reverse=True)
+    sorted_data = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
 
     return render_template('standing.html', teams=sorted_data,club_logos=club_logos)
 
