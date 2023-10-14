@@ -59,7 +59,15 @@
             left: 10px;
         }
         .logo {
-            width: 60px; /* Adjust the size as needed */
+            width: 57px; /* Adjust the size as needed */
+        }
+          .stand-with-israel-logo-container{
+            position: absolute;
+            top: 30px;
+            right: 10px;
+        }
+        .stand-with-israel-logo{
+            width: 60px;
         }
 
     </style>
@@ -70,6 +78,9 @@
         <a href="/standing">
             <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
         </a>
+    </div>
+    <div class="stand-with-israel-logo-container">
+            <img class="stand-with-israel-logo" src="{{ url_for('static', filename='stand-with-israel-logo.png') }}" alt="Logo">
     </div>
     <a href="/standing" class="button">Standings</a>
     <a href="/all-matches" class="button">All Matches</a>

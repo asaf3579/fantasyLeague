@@ -55,6 +55,7 @@ database_password = data["password"]
 db_handler = DBHandler(database="init_fanatasy", user=database_username, password=database_password, host=database_host,
                        port=5432)
 db_handler.create_users_messages_table()
+
 def generate_random_color():
     if bold_colors:
         color = random.choice(bold_colors)
@@ -79,7 +80,22 @@ def generate_rounds(teams):
 
         # Rotate teams for the next round
         teams = [teams[0]] + [teams[-1]] + teams[1:num_teams - 1]
-    # print(fixture)
+
+    new_fixture = []
+    for round in fixture:
+        current_round = []
+        for match in round:
+            home_team = match[1]
+            away_team = match[0]
+            current_round.append((home_team,away_team))
+        new_fixture.append(current_round)
+
+    for round in new_fixture:
+        fixture.append(round)
+
+    tmp = fixture[6]
+    fixture[6] = fixture[5]
+    fixture[5] = tmp
     return fixture
 
 
@@ -434,11 +450,11 @@ def all_matches():
         for match in matches:
             list_match_of_current_round.append({'home_team': match[0], 'away_team': match[1], 'home_score': get_score_in_round(round,teams_score_per_round,match[0]), 'away_score': get_score_in_round(round,teams_score_per_round,match[1])})
         match_data.append(list_match_of_current_round)
-    for matches in rounds:
-        list_match_of_current_round = []
-        for match in matches:
-            list_match_of_current_round.append({'home_team': match[1], 'away_team': match[0], 'home_score': 0, 'away_score': 0})
-        match_data.append(list_match_of_current_round)
+    # for matches in rounds:
+    #     list_match_of_current_round = []
+    #     for match in matches:
+    #         list_match_of_current_round.append({'home_team': match[1], 'away_team': match[0], 'home_score': 0, 'away_score': 0})
+    #     match_data.append(list_match_of_current_round)
 
     return render_template('all_matches.html', match_data=match_data)
 
