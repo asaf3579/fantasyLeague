@@ -490,15 +490,18 @@ def process_form():
 
     query = """
                  SELECT sum(team1), sum(team2), sum(team3), sum(team4), sum(team5), sum(team6), sum(team7)
-                 FROM public.rounds_score;
+                 FROM public.rounds_score
+                 WHERE \"roundNumber\" != 13;
                  """
 
     data_from_rounds_scoreDB = db_handler.fetch_data(query)
     data_from_sport5 = request.form
-
-    query2 = 'SELECT max("roundNumber") FROM public.rounds_score;'
+    double_fixture = False
+    query2 = 'SELECT max("roundNumber") FROM public.rounds_score WHERE \"roundNumber\" != 13;'
     last_round = int(db_handler.fetch_data(query2)[0][0])
     next_round = last_round + 1
+    if next_round == 7:
+        double_fixture = True
     clubs_score_next_round = {'round': next_round}
     for team_number, (team, score) in enumerate(data_from_sport5.items()):
         score_of_team_next_round = int(score) - int(data_from_rounds_scoreDB[0][team_number])
@@ -512,6 +515,18 @@ def process_form():
     clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'))
     db_handler.execute_query(insert_query, values)
     update_club_info_table(clubs_score_next_round)
+
+    if double_fixture:
+        clubs_score_next_round['round'] = 13
+        insert_query = "INSERT INTO public.rounds_score (\"roundNumber\", team1, team2, team3, team4, team5, team6, team7) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
+        values = (
+            clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'),
+            clubs_score_next_round.get('team2'),
+            clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'),
+            clubs_score_next_round.get('team5'),
+            clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'))
+        db_handler.execute_query(insert_query, values)
+        update_club_info_table(clubs_score_next_round)
 
 
     # Retrieve scores from the form
