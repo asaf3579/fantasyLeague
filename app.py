@@ -96,6 +96,12 @@ def generate_rounds(teams):
     tmp = fixture[6]
     fixture[6] = fixture[5]
     fixture[5] = tmp
+    for i in range(7,13):
+        tmp = fixture[i]
+        fixture[i] = fixture[13]
+        fixture[13] = tmp
+
+
     return fixture
 
 
@@ -491,13 +497,13 @@ def process_form():
     query = """
                  SELECT sum(team1), sum(team2), sum(team3), sum(team4), sum(team5), sum(team6), sum(team7)
                  FROM public.rounds_score
-                 WHERE \"roundNumber\" != 13;
+                 WHERE \"roundNumber\" != 8;
                  """
 
     data_from_rounds_scoreDB = db_handler.fetch_data(query)
     data_from_sport5 = request.form
     double_fixture = False
-    query2 = 'SELECT max("roundNumber") FROM public.rounds_score WHERE \"roundNumber\" != 13;'
+    query2 = 'SELECT max("roundNumber") FROM public.rounds_score;'
     last_round = int(db_handler.fetch_data(query2)[0][0])
     next_round = last_round + 1
     if next_round == 7:
@@ -517,7 +523,7 @@ def process_form():
     update_club_info_table(clubs_score_next_round)
 
     if double_fixture:
-        clubs_score_next_round['round'] = 13
+        clubs_score_next_round['round'] = 8
         insert_query = "INSERT INTO public.rounds_score (\"roundNumber\", team1, team2, team3, team4, team5, team6, team7) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
         values = (
             clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'),
