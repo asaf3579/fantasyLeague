@@ -20,7 +20,8 @@ club_logos = {
     'עבדים FC': 'ABADIM FC.jpeg',
     'AC MALKA': 'AC MALKA.jpeg',
     'Hapoel Sakal': 'HAPOEL SAKAL.jpeg',
-    'INTROP FC': 'INTROP FC.jpeg',
+    'לילו ועוד 10': 'INTROP FC.jpeg',
+    'בזויים FC':'nir FC.jpeg',
 }
 
 club_to_team = {
@@ -29,9 +30,9 @@ club_to_team = {
     'JakirFC': 'team3',
     'בושנסקיניו': 'team4',
     'YNWA NAAMAN': 'team5',
-    'INTROP FC': 'team6',
+    'לילו ועוד 10': 'team6',
     'AC MALKA': 'team7',
-    'NoBody': 'NoBody',
+    'בזויים FC': 'team8',
 }
 
 team_to_club = {
@@ -40,9 +41,9 @@ team_to_club = {
     'team3': 'JakirFC',
     'team4': 'בושנסקיניו',
     'team5': 'YNWA NAAMAN',
-    'team6': 'INTROP FC',
+    'team6': 'לילו ועוד 10',
     'team7': 'AC MALKA',
-    'NoBody': 'NoBody',
+    'team8': 'בזויים FC',
 
 }
 with open("config.json", "r") as json_file:
@@ -55,6 +56,9 @@ database_password = data["password"]
 db_handler = DBHandler(database="init_fanatasy", user=database_username, password=database_password, host=database_host,
                        port=5432)
 db_handler.create_users_messages_table()
+
+# db_handler = DBHandler(database="fantasyLeague", user="postgres", password='naaman3579', host="localhost",
+#                        port=5432)
 
 def generate_random_color():
     if bold_colors:
@@ -157,8 +161,8 @@ def update_club_info_table(clubs_score_next_round):
 
 app = Flask(__name__)
 # app.config['GLOBAL_VARIABLE'] = update_from_sport5()
-app.config['teams'] = ['עבדים FC', "Hapoel Sakal", "JakirFC", "בושנסקיניו", "YNWA NAAMAN", "INTROP FC", "AC MALKA",
-                       "NoBody"]
+app.config['teams'] = ['עבדים FC', "Hapoel Sakal", "JakirFC", "בושנסקיניו", "YNWA NAAMAN", "לילו ועוד 10", "AC MALKA",
+                       "בזויים FC"]
 app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with your secret key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 db_chat = SQLAlchemy(app)
@@ -449,7 +453,7 @@ def all_matches():
     match_data = []
     # rounds = generate_rounds(['בושנסקיניו', "JakirFC", "YNWA NAAMAN", "עבדים FC", "AC Malka",
     #                              "Hapoel Sakal", "אינטרופ", "NoBody"])
-    rounds = generate_rounds([team_to_club.get('team1'),team_to_club.get('team2'),team_to_club.get('team3'),team_to_club.get('team4'),team_to_club.get('team5'),team_to_club.get('team6'),team_to_club.get('team7') , "NoBody"])
+    rounds = generate_rounds([team_to_club.get('team1'),team_to_club.get('team2'),team_to_club.get('team3'),team_to_club.get('team4'),team_to_club.get('team5'),team_to_club.get('team6'),team_to_club.get('team7'), team_to_club.get('team8')])
 
     for round ,matches in enumerate(rounds):
         list_match_of_current_round = []
@@ -468,7 +472,7 @@ def all_matches():
 def top_scorers():
     # top_scorers_data = app.config['GLOBAL_VARIABLE']
     query = """
-                     SELECT max(team1), max(team2), max(team3), max(team4), max(team5), max(team6), max(team7)
+                     SELECT max(team1), max(team2), max(team3), max(team4), max(team5), max(team6), max(team7), max(team8)
                      FROM public.rounds_score;
                      """
 
@@ -495,44 +499,44 @@ def update_data():
 def process_form():
 
     query = """
-                 SELECT sum(team1), sum(team2), sum(team3), sum(team4), sum(team5), sum(team6), sum(team7)
+                 SELECT sum(team1), sum(team2), sum(team3), sum(team4), sum(team5), sum(team6), sum(team7), sum(team8)
                  FROM public.rounds_score
                  WHERE \"roundNumber\" != 8;
                  """
 
     data_from_rounds_scoreDB = db_handler.fetch_data(query)
     data_from_sport5 = request.form
-    double_fixture = False
+    # double_fixture = False
     query2 = 'SELECT max("roundNumber") FROM public.rounds_score;'
     last_round = int(db_handler.fetch_data(query2)[0][0])
     next_round = last_round + 1
-    if next_round == 7:
-        double_fixture = True
+    # if next_round == 7:
+    #     double_fixture = True
     clubs_score_next_round = {'round': next_round}
     for team_number, (team, score) in enumerate(data_from_sport5.items()):
         score_of_team_next_round = int(score) - int(data_from_rounds_scoreDB[0][team_number])
         clubs_score_next_round[team] = score_of_team_next_round
 
     # todo
-    insert_query = "INSERT INTO public.rounds_score (\"roundNumber\", team1, team2, team3, team4, team5, team6, team7) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
+    insert_query = "INSERT INTO public.rounds_score (\"roundNumber\", team1, team2, team3, team4, team5, team6, team7, team8) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s);"
     values = (
     clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'), clubs_score_next_round.get('team2'),
     clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'), clubs_score_next_round.get('team5'),
-    clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'))
+    clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'),clubs_score_next_round.get('team8'))
     db_handler.execute_query(insert_query, values)
     update_club_info_table(clubs_score_next_round)
 
-    if double_fixture:
-        clubs_score_next_round['round'] = 8
-        insert_query = "INSERT INTO public.rounds_score (\"roundNumber\", team1, team2, team3, team4, team5, team6, team7) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
-        values = (
-            clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'),
-            clubs_score_next_round.get('team2'),
-            clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'),
-            clubs_score_next_round.get('team5'),
-            clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'))
-        db_handler.execute_query(insert_query, values)
-        update_club_info_table(clubs_score_next_round)
+    # if double_fixture:
+    #     clubs_score_next_round['round'] = 8
+    #     insert_query = "INSERT INTO public.rounds_score (\"roundNumber\", team1, team2, team3, team4, team5, team6, team7) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);"
+    #     values = (
+    #         clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'),
+    #         clubs_score_next_round.get('team2'),
+    #         clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'),
+    #         clubs_score_next_round.get('team5'),
+    #         clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'))
+    #     db_handler.execute_query(insert_query, values)
+    #     update_club_info_table(clubs_score_next_round)
 
 
     # Retrieve scores from the form
