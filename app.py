@@ -25,25 +25,25 @@ club_logos = {
 }
 
 club_to_team = {
-    'עבדים FC': 'team1',
-    'Hapoel Sakal': 'team2',
+    'עבדים FC': 'team8',
+    'Hapoel Sakal': 'team6',
     'JakirFC': 'team3',
-    'בושנסקיניו': 'team4',
-    'YNWA NAAMAN': 'team5',
-    'לילו ועוד 10': 'team6',
-    'AC MALKA': 'team7',
-    'בזויים FC': 'team8',
+    'בושנסקיניו': 'team2',
+    'YNWA NAAMAN': 'team1',
+    'לילו ועוד 10': 'team7',
+    'AC MALKA': 'team4',
+    'בזויים FC': 'team5',
 }
 
 team_to_club = {
-    'team1': 'עבדים FC',
-    'team2': 'Hapoel Sakal',
+    'team8': 'עבדים FC',
+    'team6': 'Hapoel Sakal',
     'team3': 'JakirFC',
-    'team4': 'בושנסקיניו',
-    'team5': 'YNWA NAAMAN',
-    'team6': 'לילו ועוד 10',
-    'team7': 'AC MALKA',
-    'team8': 'בזויים FC',
+    'team2': 'בושנסקיניו',
+    'team1': 'YNWA NAAMAN',
+    'team7': 'לילו ועוד 10',
+    'team4': 'AC MALKA',
+    'team5': 'בזויים FC',
 
 }
 with open("config.json", "r") as json_file:
