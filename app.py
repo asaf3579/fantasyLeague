@@ -160,8 +160,8 @@ def update_club_info_table(clubs_score_next_round):
 
 app = Flask(__name__)
 # app.config['GLOBAL_VARIABLE'] = update_from_sport5()
-app.config['teams'] = ['YNWA NAAMAN', "בושנסקיניו", "JakirFC", "AC MALKA", "בזויים FC", "Hapoel Sakal", "לילו ועוד 10",
-                       "עבדים FC'"]
+app.config['teams'] = ["YNWA NAAMAN", "בושנסקיניו", "JakirFC", "AC MALKA", "בזויים FC", "Hapoel Sakal", "לילו ועוד 10",
+                       "עבדים FC"]
 app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with your secret key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///chat.db'
 db_chat = SQLAlchemy(app)
