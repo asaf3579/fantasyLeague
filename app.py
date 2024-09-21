@@ -500,8 +500,7 @@ def process_form():
 
     query = """
                  SELECT sum(team1), sum(team2), sum(team3), sum(team4), sum(team5), sum(team6), sum(team7), sum(team8)
-                 FROM public.rounds_score
-                 WHERE \"roundNumber\" != 8;
+                 FROM public.rounds_score;
                  """
 
     data_from_rounds_scoreDB = db_handler.fetch_data(query)
