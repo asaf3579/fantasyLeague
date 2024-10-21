@@ -53,7 +53,7 @@ with open("config.json", "r") as json_file:
 database_host = data["host"]
 database_username = data["username"]
 database_password = data["password"]
-db_handler = DBHandler(database="init_fanatasy", user=database_username, password=database_password, host=database_host,
+db_handler = DBHandler(database="fantasy_db_18qr", user="asaf", password="UWRdPm1BESAzsDEF32CVXYyfAolX6Kua", host="dpg-csbboj5umphs73badghg-a.frankfurt-postgres.render.com",
                        port=5432)
 db_handler.create_users_messages_table()
 
