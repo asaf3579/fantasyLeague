@@ -120,9 +120,14 @@
             max-width: 100%;
             display: block; /* Remove extra spacing */
         }
-        .highlighted {
+       .highlighted-green {
+    border-top: 2px solid green;
+}
+
+.highlighted-red {
     border-top: 2px solid red;
 }
+
 
 
 
@@ -167,7 +172,7 @@
         </thead>
         <tbody>
             {% for team in teams %}
-            <tr {% if loop.revindex == 4 %}class="highlighted"{% endif %}>
+                <tr {% if loop.revindex == 4 %}class="highlighted-green"{% elif loop.index == 7 %}class="highlighted-red"{% endif %}>
                 <td>{{ loop.index }}</td>
                 <td class="club-cell">
                 <div class="club-logo-container">
