@@ -97,13 +97,13 @@ def generate_rounds(teams):
     for round in new_fixture:
         fixture.append(round)
 
-    tmp = fixture[6]
-    fixture[6] = fixture[5]
-    fixture[5] = tmp
-    for i in range(7,13):
-        tmp = fixture[i]
-        fixture[i] = fixture[13]
-        fixture[13] = tmp
+    # tmp = fixture[6]
+    # fixture[6] = fixture[5]
+    # fixture[5] = tmp
+    # for i in range(7,13):
+    #     tmp = fixture[i]
+    #     fixture[i] = fixture[13]
+    #     fixture[13] = tmp
 
 
     return fixture
