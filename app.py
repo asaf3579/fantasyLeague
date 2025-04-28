@@ -1,3 +1,4 @@
+
 import json
 import sys
 import bcrypt
@@ -21,7 +22,7 @@ club_logos = {
     'AC MALKA': 'AC MALKA.jpeg',
     'Hapoel Sakal': 'HAPOEL SAKAL.jpeg',
     'לילו ועוד 10': 'INTROP FC.jpeg',
-    'בזויים FC':'nir FC.jpeg',
+    'בזויים FC' :'nir FC.jpeg',
 }
 
 club_to_team = {
@@ -91,20 +92,15 @@ def generate_rounds(teams):
         for match in round:
             home_team = match[1]
             away_team = match[0]
-            current_round.append((home_team,away_team))
+            current_round.append((home_team ,away_team))
         new_fixture.append(current_round)
 
     for round in new_fixture:
         fixture.append(round)
 
-    tmp = fixture[6]
-    fixture[6] = fixture[5]
-    fixture[5] = tmp
-
-    tmp = fixture[13]
-    fixture[13] = fixture[12]
-    fixture[12] = tmp
-
+    # tmp = fixture[6]
+    # fixture[6] = fixture[5]
+    # fixture[5] = tmp
     # for i in range(7,13):
     #     tmp = fixture[i]
     #     fixture[i] = fixture[13]
@@ -113,12 +109,70 @@ def generate_rounds(teams):
 
     return fixture
 
+def generate_playoff_matches(teams_data):
+    """
+    Generate playoff matches for both upper (top 4) and lower (bottom 4) playoff teams
 
+    Match 15: 
+    - Upper: 1st vs 3rd, 2nd vs 4th
+    - Lower: 5th vs 7th, 6th vs 8th
 
+    Match 16: 
+    - Upper: 1st vs 4th, 2nd vs 3rd
+    - Lower: 5th vs 8th, 6th vs 7th
 
+    Match 17: 
+    - Upper: 1st vs 2nd, 3rd vs 4th
+    - Lower: 5th vs 6th, 7th vs 8th
 
+    Returns a list of rounds, each containing matches (home_team, away_team)
+    """
+    # Sort teams by points and goal difference to get standings
+    sorted_teams = sorted(teams_data, key=lambda x: (-x['score'], -x['GD']))
 
-def get_score_in_round(index,teams_score_per_round,team):
+    # Get the teams for upper and lower playoffs
+    upper_teams = [team['club'] for team in sorted_teams[:4]]
+    lower_teams = [team['club'] for team in sorted_teams[4:]]
+
+    # Create playoff matches
+    playoff_fixture = []
+
+    # Match 15
+    round_15 = [
+        # Upper playoff
+        (upper_teams[0], upper_teams[2]),
+        (upper_teams[1], upper_teams[3]),
+        # Lower playoff
+        (lower_teams[0], lower_teams[2]),
+        (lower_teams[1], lower_teams[3])
+    ]
+    playoff_fixture.append(round_15)
+
+    # Match 16
+    round_16 = [
+        # Upper playoff
+        (upper_teams[0], upper_teams[3]),
+        (upper_teams[1], upper_teams[2]),
+        # Lower playoff
+        (lower_teams[0], lower_teams[3]),
+        (lower_teams[1], lower_teams[2])
+    ]
+    playoff_fixture.append(round_16)
+
+    # Match 17
+    round_17 = [
+        # Upper playoff
+        (upper_teams[0], upper_teams[1]),
+        (upper_teams[2], upper_teams[3]),
+        # Lower playoff
+        (lower_teams[0], lower_teams[1]),
+        (lower_teams[2], lower_teams[3])
+    ]
+    playoff_fixture.append(round_17)
+
+    return playoff_fixture, upper_teams, lower_teams
+
+def get_score_in_round(index ,teams_score_per_round ,team):
     if index < len(teams_score_per_round):
         return teams_score_per_round[index].get(team)
     return 0
@@ -130,18 +184,93 @@ def update_query(club_names_to_club):
         WHERE \"name\"= %s;  
     """
     for club_name, club_class in club_names_to_club.items():
-        values = (club_class.best_score,club_class.win_count,club_class.lose_count,club_class.draw_count,club_class.last_three_matches,club_class.GF,club_class.GA,club_class.name)
-        db_handler.execute_query(update_query,values)
+        values = (club_class.best_score ,club_class.win_count ,club_class.lose_count ,club_class.draw_count
+                  ,club_class.last_three_matches ,club_class.GF ,club_class.GA ,club_class.name)
+        db_handler.execute_query(update_query ,values)
 
 def update_club_info_table(clubs_score_next_round):
     select_query = "SELECT * FROM clubs_info"
     club_info = db_handler.fetch_data(select_query)
     club_names_to_club = {}
     for team in club_info:
-        club_names_to_club[team[0]] = club(team[0], team[1], team[2], team[3], team[4], team[5],team[6],team[7])
-    #todo: implement a function which update the club info table according to the last update.
-    fixture = generate_rounds(app.config['teams'])
-    round_to_update_matches = fixture[clubs_score_next_round.get('round') - 1]
+        club_names_to_club[team[0]] = club(team[0], team[1], team[2], team[3], team[4], team[5] ,team[6] ,team[7])
+
+    round_number = clubs_score_next_round.get('round')
+
+    # Regular season rounds (1-14)
+    if round_number <= 14:
+        fixture = generate_rounds(app.config['teams'])
+        round_to_update_matches = fixture[round_number - 1]
+    # Playoff rounds (15-17)
+    else:
+        # Check if we have saved playoff team assignments
+        select_query = "SELECT * FROM playoff_teams ORDER BY created_at DESC LIMIT 1;"
+        saved_playoff_teams = db_handler.fetch_data(select_query)
+
+        if saved_playoff_teams:
+            # Use the saved playoff teams
+            upper_team_names = saved_playoff_teams[0][2]
+            lower_team_names = saved_playoff_teams[0][3]
+
+            # Generate fixtures using the saved team assignments
+            playoff_fixture = []
+
+            # Match 15
+            round_15 = [
+                # Upper playoff
+                (upper_team_names[0], upper_team_names[2]),
+                (upper_team_names[1], upper_team_names[3]),
+                # Lower playoff
+                (lower_team_names[0], lower_team_names[2]),
+                (lower_team_names[1], lower_team_names[3])
+            ]
+            playoff_fixture.append(round_15)
+
+            # Match 16
+            round_16 = [
+                # Upper playoff
+                (upper_team_names[0], upper_team_names[3]),
+                (upper_team_names[1], upper_team_names[2]),
+                # Lower playoff
+                (lower_team_names[0], lower_team_names[3]),
+                (lower_team_names[1], lower_team_names[2])
+            ]
+            playoff_fixture.append(round_16)
+
+            # Match 17
+            round_17 = [
+                # Upper playoff
+                (upper_team_names[0], upper_team_names[1]),
+                (upper_team_names[2], upper_team_names[3]),
+                # Lower playoff
+                (lower_team_names[0], lower_team_names[1]),
+                (lower_team_names[2], lower_team_names[3])
+            ]
+            playoff_fixture.append(round_17)
+
+            playoff_round_index = round_number - 15  # Convert to 0-based index for playoff rounds
+            round_to_update_matches = playoff_fixture[playoff_round_index]
+        else:
+            # Get current standings to generate playoff matches
+            team_data = []
+            for team_name, club_obj in club_names_to_club.items():
+                team_data.append({
+                    'club': club_obj.name,
+                    'MP': club_obj.GetMP(),
+                    'W': club_obj.win_count,
+                    'D': club_obj.draw_count,
+                    'L': club_obj.lose_count,
+                    'GF': club_obj.GF,
+                    'GA': club_obj.GA,
+                    'GD': club_obj.GetGD(),
+                    'score': club_obj.getScore(),
+                    'last_3': club_obj.last_three_matches
+                })
+
+            playoff_fixture, upper_teams, lower_teams = generate_playoff_matches(team_data)
+            playoff_round_index = round_number - 15  # Convert to 0-based index for playoff rounds
+            round_to_update_matches = playoff_fixture[playoff_round_index]
+
     for match in round_to_update_matches:
         team_number_home = club_to_team.get(match[0])
         team_number_away = club_to_team.get(match[1])
@@ -149,19 +278,34 @@ def update_club_info_table(clubs_score_next_round):
             socre_home_team = clubs_score_next_round.get(team_number_home)
             score_away_team = clubs_score_next_round.get(team_number_away)
             if clubs_score_next_round.get(team_number_home) > clubs_score_next_round.get(team_number_away):
-                club_names_to_club.get(match[0]).IncreaseWin(socre_home_team,score_away_team)
-                club_names_to_club.get(match[1]).IncreaseLose(score_away_team,socre_home_team)
-                #todo update home_team with a win and update away_team with a lose
+                club_names_to_club.get(match[0]).IncreaseWin(socre_home_team ,score_away_team)
+                club_names_to_club.get(match[1]).IncreaseLose(score_away_team ,socre_home_team)
+                # todo update home_team with a win and update away_team with a lose
             elif clubs_score_next_round.get(team_number_home) < clubs_score_next_round.get(team_number_away):
-                club_names_to_club.get(match[1]).IncreaseWin(score_away_team,socre_home_team)
-                club_names_to_club.get(match[0]).IncreaseLose(socre_home_team,score_away_team)
-                #todo update away_team with a win and update home_team with a lose
+                club_names_to_club.get(match[1]).IncreaseWin(score_away_team ,socre_home_team)
+                club_names_to_club.get(match[0]).IncreaseLose(socre_home_team ,score_away_team)
+                # todo update away_team with a win and update home_team with a lose
             else:
-                club_names_to_club.get(match[0]).IncreaseDraw(socre_home_team,score_away_team)
-                club_names_to_club.get(match[1]).IncreaseDraw(socre_home_team,score_away_team)
-                #todo update draw
+                club_names_to_club.get(match[0]).IncreaseDraw(socre_home_team ,score_away_team)
+                club_names_to_club.get(match[1]).IncreaseDraw(socre_home_team ,score_away_team)
+                # todo update draw
     update_query(club_names_to_club)
 
+def setup_playoff_teams_table():
+    """Create a table to store playoff team assignments if it doesn't exist"""
+    create_table_query = """
+    CREATE TABLE IF NOT EXISTS playoff_teams (
+        id SERIAL PRIMARY KEY,
+        round_completed INTEGER NOT NULL,
+        upper_playoff TEXT[] NOT NULL,
+        lower_playoff TEXT[] NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    """
+    db_handler.execute_query(create_table_query)
+
+# Call the function to ensure the table exists
+setup_playoff_teams_table()
 
 app = Flask(__name__)
 # app.config['GLOBAL_VARIABLE'] = update_from_sport5()
@@ -218,11 +362,11 @@ def index():
 
 @login_manager.user_loader
 def load_user(user_id):
-      # Replace with your own function
+    # Replace with your own function
     return User.query.get(int(user_id))
 
 
-#new register with postgress
+# new register with postgress
 # @app.route('/register', methods=['GET','POST'])
 # def register():
 #     if request.method == 'POST':
@@ -263,7 +407,7 @@ def register():
             new_user.color = generate_random_color()
             db_chat.session.add(new_user)
             db_chat.session.commit()
-            #for backup postgresql
+            # for backup postgresql
             flash('Registration successful. You can now log in.', 'success')
             insert_query = "INSERT INTO users (username, password, color) VALUES (%s, %s, %s);"
             # values = (username, hashed_password, generate_random_color())
@@ -274,7 +418,7 @@ def register():
     return render_template('register.html')
 
 
-#login route with postgressql
+# login route with postgressql
 
 # @app.route('/login', methods=['GET','POST'])
 # def login():
@@ -379,7 +523,7 @@ def send_message():
         db_chat.session.commit()
         # #for backup in postgresql
         insert_query = "INSERT INTO messages (text, user_id, user_name, color) VALUES (%s, %s, %s, %s);"
-        values = (text, current_user.id, current_user.username,current_user.color)
+        values = (text, current_user.id, current_user.username ,current_user.color)
         db_handler.execute_query(insert_query, values)
         return jsonify(success=True, timestamp=message.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
     else:
@@ -430,17 +574,60 @@ def standing():
     results = db_handler.fetch_data(select_query)
     all_clubs = []
     for team in results:
-        Myclub = club(team[0],team[1],team[2],team[3],team[4],team[5],team[6],team[7])
+        Myclub = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
         all_clubs.append(Myclub)
     for i in range(len(all_clubs)):
         team_data.append(
-            {'club': all_clubs[i].name, 'MP': all_clubs[i].GetMP(), 'W': all_clubs[i].win_count, 'D': all_clubs[i].draw_count, 'L': all_clubs[i].lose_count,'GF': all_clubs[i].GF,'GA': all_clubs[i].GA,'GD': all_clubs[i].GetGD(), 'score': all_clubs[i].getScore(), 'last_3': all_clubs[i].last_three_matches})
-    # for i,team in enumerate(teams, start=1):
-    #     team_data.append({'rank': i,'club': team,'MP': 0,'W': 0,'D': 0,'L': 0,'score': 0,'last_3': ['W', 'D', 'np']})
-    # team_data.pop()
-    sorted_data = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+            {'club': all_clubs[i].name, 'MP': all_clubs[i].GetMP(), 'W': all_clubs[i].win_count, 'D': all_clubs[i].draw_count, 'L': all_clubs[i].lose_count ,'GF': all_clubs[i].GF ,'GA': all_clubs[i].GA
+             ,'GD': all_clubs[i].GetGD(), 'score': all_clubs[i].getScore(), 'last_3': all_clubs[i].last_three_matches})
 
-    return render_template('standing.html', teams=sorted_data,club_logos=club_logos)
+    # Check if we've completed regular season (14 rounds)
+    # Get round number information to decide if we should show playoffs button
+    select_query = "SELECT * FROM rounds_score"
+    results = db_handler.fetch_data(select_query)
+    completed_rounds = len(results) - 1  # Subtract 1 because of header row
+
+    # Check if we have saved playoff teams (meaning we're in playoffs)
+    is_playoffs_active = False
+    if completed_rounds >= 14:
+        select_query = "SELECT * FROM playoff_teams ORDER BY created_at DESC LIMIT 1;"
+        saved_playoff_teams = db_handler.fetch_data(select_query)
+        is_playoffs_active = len(saved_playoff_teams) > 0
+
+        # If we're in playoffs, sort teams differently
+        if is_playoffs_active:
+            # Get the saved upper and lower playoff teams
+            upper_team_names = saved_playoff_teams[0][2]
+            lower_team_names = saved_playoff_teams[0][3]
+
+            # First sort all teams by points and goal difference
+            all_teams_sorted = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+
+            # Now split into upper and lower playoff teams, maintaining their relative order from all_teams_sorted
+            upper_teams = []
+            lower_teams = []
+
+            for team in all_teams_sorted:
+                if team['club'] in upper_team_names:
+                    upper_teams.append(team)
+                else:
+                    lower_teams.append(team)
+
+            # Sort each group internally by points and goal difference
+            upper_teams = sorted(upper_teams, key=lambda x: (-x['score'], -x['GD']))
+            lower_teams = sorted(lower_teams, key=lambda x: (-x['score'], -x['GD']))
+
+            # Combine them back, upper teams first (ranks 1-4), then lower teams (ranks 5-8)
+            sorted_data = upper_teams + lower_teams
+        else:
+            # Standard sorting during regular season
+            sorted_data = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+    else:
+        # Standard sorting during regular season
+        sorted_data = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+
+    return render_template('standing.html', teams=sorted_data, club_logos=club_logos,
+                           completed_rounds=completed_rounds, is_playoffs_active=is_playoffs_active)
 
 @app.route('/all-matches')
 def all_matches():
@@ -449,28 +636,114 @@ def all_matches():
     teams_score_per_round = []
     for round in results:
         current_round_results = {}
-        for i in range(1,len(round)):
-            team = 'team'+str(i)
+        for i in range(1 ,len(round)):
+            team = 'team ' +str(i)
             current_round_results[team_to_club.get(team)] = round[i]
         teams_score_per_round.append(current_round_results)
 
     match_data = []
     # rounds = generate_rounds(['בושנסקיניו', "JakirFC", "YNWA NAAMAN", "עבדים FC", "AC Malka",
     #                              "Hapoel Sakal", "אינטרופ", "NoBody"])
-    rounds = generate_rounds([team_to_club.get('team1'),team_to_club.get('team2'),team_to_club.get('team3'),team_to_club.get('team4'),team_to_club.get('team5'),team_to_club.get('team6'),team_to_club.get('team7'), team_to_club.get('team8')])
+    rounds = generate_rounds \
+        ([team_to_club.get('team1') ,team_to_club.get('team2') ,team_to_club.get('team3') ,team_to_club.get('team4')
+         ,team_to_club.get('team5') ,team_to_club.get('team6') ,team_to_club.get('team7'), team_to_club.get('team8')])
 
-    for round ,matches in enumerate(rounds):
+    # Check if we've completed 14 rounds (regular season)
+    include_playoffs = len(teams_score_per_round) >= 14
+
+    # Get playoff fixtures if needed
+    playoff_fixture = []
+    if include_playoffs:
+        # Check if we have saved playoff team assignments
+        select_query = "SELECT * FROM playoff_teams ORDER BY created_at DESC LIMIT 1;"
+        saved_playoff_teams = db_handler.fetch_data(select_query)
+
+        if saved_playoff_teams:
+            # Use the saved playoff teams
+            upper_team_names = saved_playoff_teams[0][2]
+            lower_team_names = saved_playoff_teams[0][3]
+
+            # Generate fixtures using the saved team assignments
+
+            # Match 15
+            round_15 = [
+                # Upper playoff
+                (upper_team_names[0], upper_team_names[2]),
+                (upper_team_names[1], upper_team_names[3]),
+                # Lower playoff
+                (lower_team_names[0], lower_team_names[2]),
+                (lower_team_names[1], lower_team_names[3])
+            ]
+            playoff_fixture.append(round_15)
+
+            # Match 16
+            round_16 = [
+                # Upper playoff
+                (upper_team_names[0], upper_team_names[3]),
+                (upper_team_names[1], upper_team_names[2]),
+                # Lower playoff
+                (lower_team_names[0], lower_team_names[3]),
+                (lower_team_names[1], lower_team_names[2])
+            ]
+            playoff_fixture.append(round_16)
+
+            # Match 17
+            round_17 = [
+                # Upper playoff
+                (upper_team_names[0], upper_team_names[1]),
+                (upper_team_names[2], upper_team_names[3]),
+                # Lower playoff
+                (lower_team_names[0], lower_team_names[1]),
+                (lower_team_names[2], lower_team_names[3])
+            ]
+            playoff_fixture.append(round_17)
+        else:
+            # Get standings for playoff generation
+            select_query = "SELECT * FROM clubs_info"
+            club_results = db_handler.fetch_data(select_query)
+            team_data = []
+            for team in club_results:
+                my_club = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
+                team_data.append({
+                    'club': my_club.name,
+                    'MP': my_club.GetMP(),
+                    'W': my_club.win_count,
+                    'D': my_club.draw_count,
+                    'L': my_club.lose_count,
+                    'GF': my_club.GF,
+                    'GA': my_club.GA,
+                    'GD': my_club.GetGD(),
+                    'score': my_club.getScore(),
+                    'last_3': my_club.last_three_matches
+                })
+
+            # Generate playoff fixtures
+            playoff_fixture, _, _ = generate_playoff_matches(team_data)
+
+    for round, matches in enumerate(rounds):
         list_match_of_current_round = []
         for match in matches:
-            list_match_of_current_round.append({'home_team': match[0], 'away_team': match[1], 'home_score': get_score_in_round(round,teams_score_per_round,match[0]), 'away_score': get_score_in_round(round,teams_score_per_round,match[1])})
+            list_match_of_current_round.append({'home_team': match[0], 'away_team': match[1], 'home_score': get_score_in_round(round ,teams_score_per_round
+                                                                                 ,match[0]), 'away_score': get_score_in_round(round ,teams_score_per_round
+                                                                                 ,match[1])})
         match_data.append(list_match_of_current_round)
-    # for matches in rounds:
-    #     list_match_of_current_round = []
-    #     for match in matches:
-    #         list_match_of_current_round.append({'home_team': match[1], 'away_team': match[0], 'home_score': 0, 'away_score': 0})
-    #     match_data.append(list_match_of_current_round)
 
-    return render_template('all_matches.html', match_data=match_data)
+    # Add playoff rounds with scores if available
+    if include_playoffs:
+        playoff_start_index = 14  # Playoff starts after round 14
+        for playoff_round_idx, playoff_matches in enumerate(playoff_fixture):
+            round_idx = playoff_start_index + playoff_round_idx
+            playoff_match_data = []
+            for match in playoff_matches:
+                playoff_match_data.append({
+                    'home_team': match[0],
+                    'away_team': match[1],
+                    'home_score': get_score_in_round(round_idx, teams_score_per_round, match[0]),
+                    'away_score': get_score_in_round(round_idx, teams_score_per_round, match[1])
+                })
+            match_data.append(playoff_match_data)
+
+    return render_template('all_matches.html', match_data=match_data, include_playoffs=include_playoffs)
 
 @app.route('/top-scorers')
 def top_scorers():
@@ -482,24 +755,178 @@ def top_scorers():
 
     top_scorers_data = db_handler.fetch_data(query)[0]
     score_table = []
-    for i,score in enumerate(top_scorers_data,start=1):
+    for i ,score in enumerate(top_scorers_data ,start=1):
         scorer = {}
-        team = 'team'+str(i)
+        team = 'team ' +str(i)
         scorer['name'] = team_to_club.get(team)
         scorer['best_score'] = score
         score_table.append(scorer)
     sorted_data = sorted(score_table, key=lambda x: x['best_score'], reverse=True)
-    for i, dict in enumerate(sorted_data,start=1):
+    for i, dict in enumerate(sorted_data ,start=1):
         dict['rank'] = i
 
-    return render_template('top_scorers.html', top_scorers=sorted_data)
+    # Check if we've completed regular season (14 rounds)
+    select_query = "SELECT * FROM rounds_score"
+    results = db_handler.fetch_data(select_query)
+    completed_rounds = len(results) - 1  # Subtract 1 because of header row
+    include_playoffs = completed_rounds >= 14
 
-@app.route('/update-data', methods=['GET','POST'])
+    return render_template('top_scorers.html', top_scorers=sorted_data, include_playoffs=include_playoffs)
+
+@app.route('/playoffs')
+def playoffs():
+    """View only playoff matches"""
+    # Check if playoff teams are already stored in the database
+    select_query = "SELECT * FROM playoff_teams ORDER BY created_at DESC LIMIT 1;"
+    saved_playoff_teams = db_handler.fetch_data(select_query)
+
+    # Get current standings for display
+    select_query = "SELECT * FROM clubs_info"
+    club_results = db_handler.fetch_data(select_query)
+    team_data = []
+    for team in club_results:
+        my_club = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
+        team_data.append({
+            'club': my_club.name,
+            'MP': my_club.GetMP(),
+            'W': my_club.win_count,
+            'D': my_club.draw_count,
+            'L': my_club.lose_count,
+            'GF': my_club.GF,
+            'GA': my_club.GA,
+            'GD': my_club.GetGD(),
+            'score': my_club.getScore(),
+            'last_3': my_club.last_three_matches
+        })
+
+    # Sort teams by points and goal difference
+    sorted_teams = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+
+    if saved_playoff_teams:
+        # Use the saved playoff teams
+        upper_team_names = saved_playoff_teams[0][2]
+        lower_team_names = saved_playoff_teams[0][3]
+
+        # Get the full team info for each playoff team
+        upper_teams = []
+        lower_teams = []
+
+        # Extract teams in the correct order based on saved team names
+        for team_name in upper_team_names:
+            for team in sorted_teams:
+                if team['club'] == team_name:
+                    upper_teams.append(team)
+                    break
+
+        for team_name in lower_team_names:
+            for team in sorted_teams:
+                if team['club'] == team_name:
+                    lower_teams.append(team)
+                    break
+
+        # Generate playoff fixtures using the saved team assignments
+        playoff_fixture = []
+
+        # Match 15
+        round_15 = [
+            # Upper playoff
+            (upper_team_names[0], upper_team_names[2]),
+            (upper_team_names[1], upper_team_names[3]),
+            # Lower playoff
+            (lower_team_names[0], lower_team_names[2]),
+            (lower_team_names[1], lower_team_names[3])
+        ]
+        playoff_fixture.append(round_15)
+
+        # Match 16
+        round_16 = [
+            # Upper playoff
+            (upper_team_names[0], upper_team_names[3]),
+            (upper_team_names[1], upper_team_names[2]),
+            # Lower playoff
+            (lower_team_names[0], lower_team_names[3]),
+            (lower_team_names[1], lower_team_names[2])
+        ]
+        playoff_fixture.append(round_16)
+
+        # Match 17
+        round_17 = [
+            # Upper playoff
+            (upper_team_names[0], upper_team_names[1]),
+            (upper_team_names[2], upper_team_names[3]),
+            # Lower playoff
+            (lower_team_names[0], lower_team_names[1]),
+            (lower_team_names[2], lower_team_names[3])
+        ]
+        playoff_fixture.append(round_17)
+    else:
+        # Generate teams and fixtures as before
+        # Split into upper and lower teams based on current standings
+        upper_teams = sorted_teams[:4]
+        lower_teams = sorted_teams[4:]
+
+        # Get team names for generating fixtures
+        upper_team_names = [team['club'] for team in upper_teams]
+        lower_team_names = [team['club'] for team in lower_teams]
+
+        # Create playoff fixtures
+        playoff_fixture, _, _ = generate_playoff_matches(team_data)
+
+    # Get scores if available
+    select_query = "SELECT * FROM rounds_score"
+    results = db_handler.fetch_data(select_query)[1:]
+    teams_score_per_round = []
+    for round in results:
+        current_round_results = {}
+        for i in range(1 ,len(round)):
+            team = 'team ' +str(i)
+            current_round_results[team_to_club.get(team)] = round[i]
+        teams_score_per_round.append(current_round_results)
+
+    # Create match data for template
+    playoff_match_data = []
+    playoff_start_index = 14  # Playoff starts after round 14
+
+    for playoff_round_idx, playoff_matches in enumerate(playoff_fixture):
+        round_idx = playoff_start_index + playoff_round_idx
+
+        # Split into upper and lower matches
+        upper_matches = playoff_matches[:2]
+        lower_matches = playoff_matches[2:]
+
+        upper_round_data = []
+        for match in upper_matches:
+            upper_round_data.append({
+                'home_team': match[0],
+                'away_team': match[1],
+                'home_score': get_score_in_round(round_idx, teams_score_per_round, match[0]),
+                'away_score': get_score_in_round(round_idx, teams_score_per_round, match[1])
+            })
+
+        lower_round_data = []
+        for match in lower_matches:
+            lower_round_data.append({
+                'home_team': match[0],
+                'away_team': match[1],
+                'home_score': get_score_in_round(round_idx, teams_score_per_round, match[0]),
+                'away_score': get_score_in_round(round_idx, teams_score_per_round, match[1])
+            })
+
+        playoff_match_data.append({
+            'upper_matches': upper_round_data,
+            'lower_matches': lower_round_data,
+            'round': playoff_round_idx + 1
+        })
+
+    return render_template('playoffs.html', playoff_data=playoff_match_data,
+                           upper_teams=upper_teams, lower_teams=lower_teams)
+
+@app.route('/update-data', methods=['GET' ,'POST'])
 def update_data():
 
     return render_template('update_data.html')
 
-@app.route('/update-data-process', methods=['GET','POST'])
+@app.route('/update-data-process', methods=['GET' ,'POST'])
 def process_form():
 
     query = """
@@ -523,11 +950,46 @@ def process_form():
     # todo
     insert_query = "INSERT INTO public.rounds_score (\"roundNumber\", team1, team2, team3, team4, team5, team6, team7, team8) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s);"
     values = (
-    clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'), clubs_score_next_round.get('team2'),
-    clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'), clubs_score_next_round.get('team5'),
-    clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'),clubs_score_next_round.get('team8'))
+        clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'), clubs_score_next_round.get('team2'),
+        clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'), clubs_score_next_round.get('team5'),
+        clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7') ,clubs_score_next_round.get('team8'))
     db_handler.execute_query(insert_query, values)
     update_club_info_table(clubs_score_next_round)
+
+    # If we just completed round 14, save the playoff team assignments
+    if next_round == 15:
+        # Get current standings
+        select_query = "SELECT * FROM clubs_info"
+        club_results = db_handler.fetch_data(select_query)
+        team_data = []
+        for team in club_results:
+            my_club = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
+            team_data.append({
+                'club': my_club.name,
+                'MP': my_club.GetMP(),
+                'W': my_club.win_count,
+                'D': my_club.draw_count,
+                'L': my_club.lose_count,
+                'GF': my_club.GF,
+                'GA': my_club.GA,
+                'GD': my_club.GetGD(),
+                'score': my_club.getScore(),
+                'last_3': my_club.last_three_matches
+            })
+
+        # Sort teams by points and goal difference
+        sorted_teams = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+
+        # Split into upper and lower teams
+        upper_teams = [team['club'] for team in sorted_teams[:4]]
+        lower_teams = [team['club'] for team in sorted_teams[4:]]
+
+        # Save to database
+        insert_playoff_query = """
+        INSERT INTO playoff_teams (round_completed, upper_playoff, lower_playoff)
+        VALUES (%s, %s, %s);
+        """
+        db_handler.execute_query(insert_playoff_query, (14, upper_teams, lower_teams))
 
     # if double_fixture:
     #     clubs_score_next_round['round'] = 8
@@ -555,12 +1017,12 @@ def process_form():
     return redirect('/standing')
 
 
-if __name__ == '__main__':
-#     # username = sys.argv[1]
-#     # password = sys.argv[2]
-#     # host = sys.argv[3]
-#     # db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
-#     #                        port=5432)
+if __name__ == '_main_':
+    #     # username = sys.argv[1]
+    #     # password = sys.argv[2]
+    #     # host = sys.argv[3]
+    #     # db_handler = DBHandler(database="init_fanatasy", user=username, password=password, host=host,
+    #     #                        port=5432)
     with app.app_context():
         db_chat.create_all()
 

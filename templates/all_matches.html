@@ -92,10 +92,13 @@
     <a href="/standing" class="button">Standings</a>
     <a href="/top-scorers" class="button">Top Scorers</a>
     <a href="/chat" id="chat-button" class="button">Trash Talk </a>
+    {% if include_playoffs %}
+    <a href="/playoffs" class="button">Playoffs</a>
+    {% endif %}
 
-
-    <!-- Repeat for each round -->
-    {% for round_matches in match_data %}
+    <h2>Regular Season</h2>
+    <!-- Regular season matches (first 14 rounds) -->
+    {% for round_matches in match_data[:14] %}
     <h2>Round {{ loop.index }}:</h2>
     <table>
         <thead>
@@ -116,7 +119,61 @@
         </tbody>
     </table>
     {% endfor %}
-    <!-- Repeat for each round -->
+
+    {% if include_playoffs and match_data|length > 14 %}
+    <h2 style="text-align: center; margin-top: 30px; color: #702963; font-size: 1.5em;">PLAYOFFS</h2>
+
+    <div style="margin: 20px auto; padding: 10px; width: 80%; background-color: #ffeeba; border-left: 4px solid #ffc107; border-radius: 3px; text-align: center;">
+        <strong>Note:</strong> Playoff groups (top 4 and bottom 4) are locked based on standings after round 14.
+    </div>
+
+    <!-- Playoff matches (rounds 15-17) -->
+    {% for round_matches in match_data[14:] %}
+    <h2>Playoff Round {{ loop.index }}:</h2>
+
+    <!-- Upper Playoff Matches -->
+    <h3 style="text-align: center; color: #702963; margin-top: 20px;">Upper Playoff Matches</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in round_matches[:2] %}
+            <tr>
+                <td>{{ match['home_team'] }}</td>
+                <td>{{ match['away_team'] }}</td>
+                <td>{{ match['home_score'] }} - {{ match['away_score'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Lower Playoff Matches -->
+    <h3 style="text-align: center; color: #444444; margin-top: 20px;">Lower Playoff Matches</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in round_matches[2:] %}
+            <tr>
+                <td>{{ match['home_team'] }}</td>
+                <td>{{ match['away_team'] }}</td>
+                <td>{{ match['home_score'] }} - {{ match['away_score'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+    {% endif %}
 
     <a href="{{ url_for('logout') }}" class="button">Logout</a>
 

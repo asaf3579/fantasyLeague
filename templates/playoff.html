@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Roni Shmoni League 2024/25 - Playoffs</title>
+    <style>
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f2f2f2;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 20px;
+            background-color: #702963;
+            color: white;
+        }
+
+        /* Table styles */
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        /* Round heading styles */
+        h2 {
+            font-size: 1.2em;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .logo-container {
+            position: absolute;
+            top: 30px;
+            left: 10px;
+        }
+        .logo {
+            width: 57px; /* Adjust the size as needed */
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #702963; /* was #333 */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px;
+        }
+        .stand-with-israel-logo-container{
+            position: absolute;
+            top: 30px;
+            right: 10px;
+        }
+        .stand-with-israel-logo{
+            width: 60px;
+        }
+
+        .playoff-banner {
+            background-color: #702963;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin: 20px auto;
+            width: 80%;
+            border-radius: 5px;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .top-teams {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .team-card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+            padding: 15px;
+            width: 200px;
+            text-align: center;
+        }
+
+        .team-rank {
+            font-size: 2em;
+            font-weight: bold;
+            color: #702963;
+        }
+
+        .team-name {
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .team-stats {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Roni Shmoni League 2024/25 - Playoffs</h1>
+    <div class="logo-container">
+        <a href="/standing">
+            <img class="logo" src="{{ url_for('static', filename='Roni_Shmoni_LOGO.jpeg') }}" alt="Logo">
+        </a>
+    </div>
+    <div class="stand-with-israel-logo-container">
+            <img class="stand-with-israel-logo" src="{{ url_for('static', filename='stand-with-israel-logo.png') }}" alt="Logo">
+    </div>
+    <a href="/standing" class="button">Standings</a>
+    <a href="/all-matches" class="button">All Matches</a>
+    <a href="/top-scorers" class="button">Top Scorers</a>
+    <a href="/chat" id="chat-button" class="button">Trash Talk</a>
+
+    <div style="margin: 20px auto; padding: 15px; background-color: #f9f9f9; border-radius: 5px; width: 80%; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3 style="color: #702963; margin-top: 0;">Playoff System Explained</h3>
+        <p>After the regular 14-round season, teams are divided into two groups:</p>
+        <ul>
+            <li><strong>Championship Playoff</strong>: The top 4 teams compete for the league title</li>
+            <li><strong>Relegation Playoff</strong>: The bottom 4 teams compete to avoid relegation</li>
+        </ul>
+        <p>Each team plays 3 more matches in their respective playoff group:</p>
+        <ul>
+            <li><strong>Playoff Round 1</strong>: 1st vs 3rd, 2nd vs 4th (5th vs 7th, 6th vs 8th)</li>
+            <li><strong>Playoff Round 2</strong>: 1st vs 4th, 2nd vs 3rd (5th vs 8th, 6th vs 7th)</li>
+            <li><strong>Playoff Round 3</strong>: 1st vs 2nd, 3rd vs 4th (5th vs 6th, 7th vs 8th)</li>
+        </ul>
+        <p>Points earned in the regular season carry over to the playoffs.</p>
+        <div style="margin-top: 10px; padding: 10px; background-color: #ffeeba; border-left: 4px solid #ffc107; border-radius: 3px;">
+            <strong>Note:</strong> The playoff teams are locked in based on standings after round 14. Even if team positions change during playoffs, the matchups remain fixed.
+        </div>
+    </div>
+
+    <div class="playoff-banner">
+        CHAMPIONSHIP PLAYOFFS - TOP 4 TEAMS
+    </div>
+
+    <!-- Top 4 teams display -->
+    <div class="top-teams">
+        {% for team in upper_teams %}
+        <div class="team-card">
+            <div class="team-rank">{{ loop.index }}</div>
+            <div class="team-name">{{ team.club }}</div>
+            <div class="team-stats">
+                Points: {{ team.score }} | GD: {{ team.GD }}<br>
+                W: {{ team.W }} | D: {{ team.D }} | L: {{ team.L }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Upper Playoff rounds -->
+    {% for round_data in playoff_data %}
+    <h2>Playoff Round {{ round_data.round }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th colspan="3">Upper Playoff</th>
+            </tr>
+            <tr>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in round_data.upper_matches %}
+            <tr>
+                <td>{{ match['home_team'] }}</td>
+                <td>{{ match['away_team'] }}</td>
+                <td>
+                    {% if match['home_score'] != 0 or match['away_score'] != 0 %}
+                        {{ match['home_score'] }} - {{ match['away_score'] }}
+                    {% else %}
+                        Not Played Yet
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+
+    <div class="playoff-banner" style="background-color: #444444;">
+        RELEGATION PLAYOFFS - BOTTOM 4 TEAMS
+    </div>
+
+    <!-- Bottom 4 teams display -->
+    <div class="top-teams">
+        {% for team in lower_teams %}
+        <div class="team-card" style="border-top: 3px solid #444444;">
+            <div class="team-rank" style="color: #444444;">{{ loop.index + 4 }}</div>
+            <div class="team-name">{{ team.club }}</div>
+            <div class="team-stats">
+                Points: {{ team.score }} | GD: {{ team.GD }}<br>
+                W: {{ team.W }} | D: {{ team.D }} | L: {{ team.L }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Lower Playoff rounds -->
+    {% for round_data in playoff_data %}
+    <h2>Playoff Round {{ round_data.round }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th colspan="3" style="background-color: #444444;">Lower Playoff</th>
+            </tr>
+            <tr>
+                <th>Home Team</th>
+                <th>Away Team</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for match in round_data.lower_matches %}
+            <tr>
+                <td>{{ match['home_team'] }}</td>
+                <td>{{ match['away_team'] }}</td>
+                <td>
+                    {% if match['home_score'] != 0 or match['away_score'] != 0 %}
+                        {{ match['home_score'] }} - {{ match['away_score'] }}
+                    {% else %}
+                        Not Played Yet
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+
+    <a href="{{ url_for('logout') }}" class="button">Logout</a>
+</body>
+</html>

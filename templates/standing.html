@@ -151,7 +151,16 @@
     {% if current_user.username == 'asaf' %}
     <a href="/update-data" class="button">Update Data</a>
     {% endif %}
+    {% if completed_rounds >= 14 %}
+    <a href="/playoffs" class="button">Playoffs</a>
+    {% endif %}
 <!--    <a href="/update-data" class="button">Update Data</a>-->
+
+    {% if is_playoffs_active %}
+    <div style="margin: 20px auto; padding: 10px; width: 80%; background-color: #ffeeba; border-left: 4px solid #ffc107; border-radius: 3px; text-align: center;">
+        <strong>Note:</strong> The league is currently in playoff mode. Teams in the upper playoff (positions 1-4) will always rank above teams in the lower playoff (positions 5-8) regardless of points.
+    </div>
+    {% endif %}
 
     <table>
         <thead>
@@ -171,6 +180,14 @@
             </tr>
         </thead>
         <tbody>
+            {% if is_playoffs_active %}
+            <tr>
+                <td colspan="11" style="background-color: #f2f2f2; padding: 8px; text-align: center; border-bottom: 2px solid #702963;">
+                    <strong style="color: #702963;">UPPER PLAYOFF GROUP</strong>
+                </td>
+            </tr>
+            {% endif %}
+
             {% for team in teams %}
                 <tr {% if loop.revindex == 4 %}class="highlighted-green"{% elif loop.index == 8 %}class="highlighted-red"{% endif %}>
                 <td>{{ loop.index }}</td>
@@ -189,9 +206,6 @@
                 <td>{{ team['GD'] }}</td>
                 <td><strong>{{ team['score'] }}</strong></td>
 
-
-
-
                 <td class="last-3">
                     {% for result in team['last_3'] %}
                         <span class="result-circle {% if result == 'W' %}win{% elif result == 'L' %}lose{% elif result == 'D' %}draw{% else %}not-played{% endif %}">
@@ -208,9 +222,16 @@
                         </span>
                     {% endfor %}
                 </td>
-
-
             </tr>
+
+            {% if is_playoffs_active and loop.index == 4 %}
+            <tr>
+                <td colspan="11" style="background-color: #f2f2f2; padding: 8px; text-align: center; border-top: 2px solid #444444; border-bottom: 2px solid #444444;">
+                    <strong style="color: #444444;">LOWER PLAYOFF GROUP</strong>
+                </td>
+            </tr>
+            {% endif %}
+
             {% endfor %}
         </tbody>
     </table>
