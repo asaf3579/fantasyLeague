@@ -1,4 +1,3 @@
-
 import json
 import sys
 import bcrypt
@@ -11,8 +10,8 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import random
 
-bold_colors = ["red", "black", "blue", "purple", "pink", "orange", "green", "brown", "crimson", "indigo", "teal", "magenta", "turquoise"]
-
+bold_colors = ["red", "black", "blue", "purple", "pink", "orange", "green", "brown", "crimson", "indigo", "teal",
+               "magenta", "turquoise"]
 
 club_logos = {
     'בושנסקיניו': 'ob7.jpeg',
@@ -22,7 +21,7 @@ club_logos = {
     'AC MALKA': 'AC MALKA.jpeg',
     'Hapoel Sakal': 'HAPOEL SAKAL.jpeg',
     'לילו ועוד 10': 'INTROP FC.jpeg',
-    'בזויים FC' :'nir FC.jpeg',
+    'בזויים FC': 'nir FC.jpeg',
 }
 
 club_to_team = {
@@ -54,9 +53,11 @@ with open("config.json", "r") as json_file:
 database_host = data["host"]
 database_username = data["username"]
 database_password = data["password"]
-db_handler = DBHandler(database="fantasy_db_18qr", user="asaf", password="UWRdPm1BESAzsDEF32CVXYyfAolX6Kua", host="dpg-csbboj5umphs73badghg-a.frankfurt-postgres.render.com",
+db_handler = DBHandler(database="fantasy_db_18qr", user="asaf", password="UWRdPm1BESAzsDEF32CVXYyfAolX6Kua",
+                       host="dpg-csbboj5umphs73badghg-a.frankfurt-postgres.render.com",
                        port=5432)
 db_handler.create_users_messages_table()
+
 
 # db_handler = DBHandler(database="fantasyLeague", user="postgres", password='naaman3579', host="localhost",
 #                        port=5432)
@@ -68,6 +69,8 @@ def generate_random_color():
         return color
     else:
         return "black"  # Return None if the list is empty
+
+
 def generate_rounds(teams):
     num_teams = len(teams)
     num_rounds = num_teams - 1
@@ -92,7 +95,7 @@ def generate_rounds(teams):
         for match in round:
             home_team = match[1]
             away_team = match[0]
-            current_round.append((home_team ,away_team))
+            current_round.append((home_team, away_team))
         new_fixture.append(current_round)
 
     for round in new_fixture:
@@ -106,22 +109,22 @@ def generate_rounds(teams):
     #     fixture[i] = fixture[13]
     #     fixture[13] = tmp
 
-
     return fixture
+
 
 def generate_playoff_matches(teams_data):
     """
     Generate playoff matches for both upper (top 4) and lower (bottom 4) playoff teams
 
-    Match 15: 
+    Match 15:
     - Upper: 1st vs 3rd, 2nd vs 4th
     - Lower: 5th vs 7th, 6th vs 8th
 
-    Match 16: 
+    Match 16:
     - Upper: 1st vs 4th, 2nd vs 3rd
     - Lower: 5th vs 8th, 6th vs 7th
 
-    Match 17: 
+    Match 17:
     - Upper: 1st vs 2nd, 3rd vs 4th
     - Lower: 5th vs 6th, 7th vs 8th
 
@@ -172,10 +175,12 @@ def generate_playoff_matches(teams_data):
 
     return playoff_fixture, upper_teams, lower_teams
 
-def get_score_in_round(index ,teams_score_per_round ,team):
+
+def get_score_in_round(index, teams_score_per_round, team):
     if index < len(teams_score_per_round):
         return teams_score_per_round[index].get(team)
     return 0
+
 
 def update_query(club_names_to_club):
     update_query = """
@@ -184,16 +189,17 @@ def update_query(club_names_to_club):
         WHERE \"name\"= %s;  
     """
     for club_name, club_class in club_names_to_club.items():
-        values = (club_class.best_score ,club_class.win_count ,club_class.lose_count ,club_class.draw_count
-                  ,club_class.last_three_matches ,club_class.GF ,club_class.GA ,club_class.name)
-        db_handler.execute_query(update_query ,values)
+        values = (club_class.best_score, club_class.win_count, club_class.lose_count, club_class.draw_count,
+                  club_class.last_three_matches, club_class.GF, club_class.GA, club_class.name)
+        db_handler.execute_query(update_query, values)
+
 
 def update_club_info_table(clubs_score_next_round):
     select_query = "SELECT * FROM clubs_info"
     club_info = db_handler.fetch_data(select_query)
     club_names_to_club = {}
     for team in club_info:
-        club_names_to_club[team[0]] = club(team[0], team[1], team[2], team[3], team[4], team[5] ,team[6] ,team[7])
+        club_names_to_club[team[0]] = club(team[0], team[1], team[2], team[3], team[4], team[5], team[6], team[7])
 
     round_number = clubs_score_next_round.get('round')
 
@@ -278,18 +284,19 @@ def update_club_info_table(clubs_score_next_round):
             socre_home_team = clubs_score_next_round.get(team_number_home)
             score_away_team = clubs_score_next_round.get(team_number_away)
             if clubs_score_next_round.get(team_number_home) > clubs_score_next_round.get(team_number_away):
-                club_names_to_club.get(match[0]).IncreaseWin(socre_home_team ,score_away_team)
-                club_names_to_club.get(match[1]).IncreaseLose(score_away_team ,socre_home_team)
+                club_names_to_club.get(match[0]).IncreaseWin(socre_home_team, score_away_team)
+                club_names_to_club.get(match[1]).IncreaseLose(score_away_team, socre_home_team)
                 # todo update home_team with a win and update away_team with a lose
             elif clubs_score_next_round.get(team_number_home) < clubs_score_next_round.get(team_number_away):
-                club_names_to_club.get(match[1]).IncreaseWin(score_away_team ,socre_home_team)
-                club_names_to_club.get(match[0]).IncreaseLose(socre_home_team ,score_away_team)
+                club_names_to_club.get(match[1]).IncreaseWin(score_away_team, socre_home_team)
+                club_names_to_club.get(match[0]).IncreaseLose(socre_home_team, score_away_team)
                 # todo update away_team with a win and update home_team with a lose
             else:
-                club_names_to_club.get(match[0]).IncreaseDraw(socre_home_team ,score_away_team)
-                club_names_to_club.get(match[1]).IncreaseDraw(socre_home_team ,score_away_team)
+                club_names_to_club.get(match[0]).IncreaseDraw(socre_home_team, score_away_team)
+                club_names_to_club.get(match[1]).IncreaseDraw(socre_home_team, score_away_team)
                 # todo update draw
     update_query(club_names_to_club)
+
 
 def setup_playoff_teams_table():
     """Create a table to store playoff team assignments if it doesn't exist"""
@@ -303,6 +310,7 @@ def setup_playoff_teams_table():
     );
     """
     db_handler.execute_query(create_table_query)
+
 
 # Call the function to ensure the table exists
 setup_playoff_teams_table()
@@ -321,8 +329,9 @@ with app.app_context():
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-#
 
+
+#
 
 
 class User(UserMixin, db_chat.Model):
@@ -330,6 +339,7 @@ class User(UserMixin, db_chat.Model):
     username = db_chat.Column(db_chat.String(50), unique=True, nullable=False)
     password = db_chat.Column(db_chat.String(100), nullable=False)
     color = db_chat.Column(db_chat.String(7))  # Add the color field to store user's chat name color
+
 
 # def get_user_by_name(user_name):
 #     # Fetch user data from your data source based on user_id
@@ -351,13 +361,14 @@ class Message(db_chat.Model):
     timestamp = db_chat.Column(db_chat.DateTime, default=datetime.utcnow)
     user_id = db_chat.Column(db_chat.Integer, db_chat.ForeignKey('user.id'))
     user = db_chat.relationship('User', backref='messages')
+
+
 # Create a User model
 
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 
 @login_manager.user_loader
@@ -496,6 +507,7 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
 
+
 # Main chat page
 @app.route('/chat')
 @login_required
@@ -512,6 +524,7 @@ def chat():
 
     return render_template('chat.html', messages=messages_data)
 
+
 @app.route('/send_message', methods=['POST'])
 @login_required
 def send_message():
@@ -523,11 +536,13 @@ def send_message():
         db_chat.session.commit()
         # #for backup in postgresql
         insert_query = "INSERT INTO messages (text, user_id, user_name, color) VALUES (%s, %s, %s, %s);"
-        values = (text, current_user.id, current_user.username ,current_user.color)
+        values = (text, current_user.id, current_user.username, current_user.color)
         db_handler.execute_query(insert_query, values)
         return jsonify(success=True, timestamp=message.timestamp.strftime('%Y-%m-%d %H:%M:%S'))
     else:
         return jsonify(success=False, error='Message text is required')
+
+
 # Sending a message
 # @app.route('/send_message', methods=['POST'])
 # @login_required
@@ -568,18 +583,18 @@ def send_message():
 
 @app.route('/standing')
 def standing():
-
     team_data = []
     select_query = "SELECT * FROM clubs_info"
     results = db_handler.fetch_data(select_query)
     all_clubs = []
     for team in results:
-        Myclub = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
+        Myclub = club(team[0], team[1], team[2], team[3], team[4], team[5], team[6], team[7])
         all_clubs.append(Myclub)
     for i in range(len(all_clubs)):
         team_data.append(
-            {'club': all_clubs[i].name, 'MP': all_clubs[i].GetMP(), 'W': all_clubs[i].win_count, 'D': all_clubs[i].draw_count, 'L': all_clubs[i].lose_count ,'GF': all_clubs[i].GF ,'GA': all_clubs[i].GA
-             ,'GD': all_clubs[i].GetGD(), 'score': all_clubs[i].getScore(), 'last_3': all_clubs[i].last_three_matches})
+            {'club': all_clubs[i].name, 'MP': all_clubs[i].GetMP(), 'W': all_clubs[i].win_count,
+             'D': all_clubs[i].draw_count, 'L': all_clubs[i].lose_count, 'GF': all_clubs[i].GF, 'GA': all_clubs[i].GA,
+             'GD': all_clubs[i].GetGD(), 'score': all_clubs[i].getScore(), 'last_3': all_clubs[i].last_three_matches})
 
     # Check if we've completed regular season (14 rounds)
     # Get round number information to decide if we should show playoffs button
@@ -629,6 +644,7 @@ def standing():
     return render_template('standing.html', teams=sorted_data, club_logos=club_logos,
                            completed_rounds=completed_rounds, is_playoffs_active=is_playoffs_active)
 
+
 @app.route('/all-matches')
 def all_matches():
     select_query = "SELECT * FROM rounds_score"
@@ -636,17 +652,17 @@ def all_matches():
     teams_score_per_round = []
     for round in results:
         current_round_results = {}
-        for i in range(1 ,len(round)):
-            team = 'team ' +str(i)
+        for i in range(1, len(round)):
+            team = 'team' + str(i)
             current_round_results[team_to_club.get(team)] = round[i]
         teams_score_per_round.append(current_round_results)
 
     match_data = []
     # rounds = generate_rounds(['בושנסקיניו', "JakirFC", "YNWA NAAMAN", "עבדים FC", "AC Malka",
     #                              "Hapoel Sakal", "אינטרופ", "NoBody"])
-    rounds = generate_rounds \
-        ([team_to_club.get('team1') ,team_to_club.get('team2') ,team_to_club.get('team3') ,team_to_club.get('team4')
-         ,team_to_club.get('team5') ,team_to_club.get('team6') ,team_to_club.get('team7'), team_to_club.get('team8')])
+    rounds = generate_rounds(
+        [team_to_club.get('team1'), team_to_club.get('team2'), team_to_club.get('team3'), team_to_club.get('team4'),
+         team_to_club.get('team5'), team_to_club.get('team6'), team_to_club.get('team7'), team_to_club.get('team8')])
 
     # Check if we've completed 14 rounds (regular season)
     include_playoffs = len(teams_score_per_round) >= 14
@@ -703,7 +719,7 @@ def all_matches():
             club_results = db_handler.fetch_data(select_query)
             team_data = []
             for team in club_results:
-                my_club = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
+                my_club = club(team[0], team[1], team[2], team[3], team[4], team[5], team[6], team[7])
                 team_data.append({
                     'club': my_club.name,
                     'MP': my_club.GetMP(),
@@ -723,9 +739,11 @@ def all_matches():
     for round, matches in enumerate(rounds):
         list_match_of_current_round = []
         for match in matches:
-            list_match_of_current_round.append({'home_team': match[0], 'away_team': match[1], 'home_score': get_score_in_round(round ,teams_score_per_round
-                                                                                 ,match[0]), 'away_score': get_score_in_round(round ,teams_score_per_round
-                                                                                 ,match[1])})
+            list_match_of_current_round.append({'home_team': match[0], 'away_team': match[1],
+                                                'home_score': get_score_in_round(round, teams_score_per_round,
+                                                                                 match[0]),
+                                                'away_score': get_score_in_round(round, teams_score_per_round,
+                                                                                 match[1])})
         match_data.append(list_match_of_current_round)
 
     # Add playoff rounds with scores if available
@@ -745,6 +763,7 @@ def all_matches():
 
     return render_template('all_matches.html', match_data=match_data, include_playoffs=include_playoffs)
 
+
 @app.route('/top-scorers')
 def top_scorers():
     # top_scorers_data = app.config['GLOBAL_VARIABLE']
@@ -755,14 +774,14 @@ def top_scorers():
 
     top_scorers_data = db_handler.fetch_data(query)[0]
     score_table = []
-    for i ,score in enumerate(top_scorers_data ,start=1):
+    for i, score in enumerate(top_scorers_data, start=1):
         scorer = {}
-        team = 'team ' +str(i)
+        team = 'team' + str(i)
         scorer['name'] = team_to_club.get(team)
         scorer['best_score'] = score
         score_table.append(scorer)
     sorted_data = sorted(score_table, key=lambda x: x['best_score'], reverse=True)
-    for i, dict in enumerate(sorted_data ,start=1):
+    for i, dict in enumerate(sorted_data, start=1):
         dict['rank'] = i
 
     # Check if we've completed regular season (14 rounds)
@@ -772,6 +791,7 @@ def top_scorers():
     include_playoffs = completed_rounds >= 14
 
     return render_template('top_scorers.html', top_scorers=sorted_data, include_playoffs=include_playoffs)
+
 
 @app.route('/playoffs')
 def playoffs():
@@ -785,7 +805,7 @@ def playoffs():
     club_results = db_handler.fetch_data(select_query)
     team_data = []
     for team in club_results:
-        my_club = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
+        my_club = club(team[0], team[1], team[2], team[3], team[4], team[5], team[6], team[7])
         team_data.append({
             'club': my_club.name,
             'MP': my_club.GetMP(),
@@ -878,8 +898,8 @@ def playoffs():
     teams_score_per_round = []
     for round in results:
         current_round_results = {}
-        for i in range(1 ,len(round)):
-            team = 'team ' +str(i)
+        for i in range(1, len(round)):
+            team = 'team' + str(i)
             current_round_results[team_to_club.get(team)] = round[i]
         teams_score_per_round.append(current_round_results)
 
@@ -921,14 +941,14 @@ def playoffs():
     return render_template('playoffs.html', playoff_data=playoff_match_data,
                            upper_teams=upper_teams, lower_teams=lower_teams)
 
-@app.route('/update-data', methods=['GET' ,'POST'])
-def update_data():
 
+@app.route('/update-data', methods=['GET', 'POST'])
+def update_data():
     return render_template('update_data.html')
 
-@app.route('/update-data-process', methods=['GET' ,'POST'])
-def process_form():
 
+@app.route('/update-data-process', methods=['GET', 'POST'])
+def process_form():
     query = """
                  SELECT sum(team1), sum(team2), sum(team3), sum(team4), sum(team5), sum(team6), sum(team7), sum(team8)
                  FROM public.rounds_score;
@@ -952,7 +972,7 @@ def process_form():
     values = (
         clubs_score_next_round.get('round'), clubs_score_next_round.get('team1'), clubs_score_next_round.get('team2'),
         clubs_score_next_round.get('team3'), clubs_score_next_round.get('team4'), clubs_score_next_round.get('team5'),
-        clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7') ,clubs_score_next_round.get('team8'))
+        clubs_score_next_round.get('team6'), clubs_score_next_round.get('team7'), clubs_score_next_round.get('team8'))
     db_handler.execute_query(insert_query, values)
     update_club_info_table(clubs_score_next_round)
 
@@ -963,7 +983,7 @@ def process_form():
         club_results = db_handler.fetch_data(select_query)
         team_data = []
         for team in club_results:
-            my_club = club(team[0] ,team[1] ,team[2] ,team[3] ,team[4] ,team[5] ,team[6] ,team[7])
+            my_club = club(team[0], team[1], team[2], team[3], team[4], team[5], team[6], team[7])
             team_data.append({
                 'club': my_club.name,
                 'MP': my_club.GetMP(),
@@ -1003,7 +1023,6 @@ def process_form():
     #     db_handler.execute_query(insert_query, values)
     #     update_club_info_table(clubs_score_next_round)
 
-
     # Retrieve scores from the form
     # team1_score = request.form.get('team1')
     # team2_score = request.form.get('team2')
@@ -1017,7 +1036,7 @@ def process_form():
     return redirect('/standing')
 
 
-if __name__ == '_main_':
+if __name__ == '__main__':
     #     # username = sys.argv[1]
     #     # password = sys.argv[2]
     #     # host = sys.argv[3]
