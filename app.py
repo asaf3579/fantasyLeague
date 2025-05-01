@@ -117,25 +117,25 @@ def generate_playoff_matches(teams_data):
     Generate playoff matches for both upper (top 4) and lower (bottom 4) playoff teams
 
     Match 15:
-    - Upper: 1st vs 3rd, 2nd vs 4th
-    - Lower: 5th vs 7th, 6th vs 8th
+    - Upper: team5 vs team3, team1 vs team2
+    - Lower: team4 vs team7, team8 vs team6
 
     Match 16:
-    - Upper: 1st vs 4th, 2nd vs 3rd
-    - Lower: 5th vs 8th, 6th vs 7th
+    - Upper: team5 vs team2, team1 vs team3
+    - Lower: team4 vs team6, team8 vs team7
 
     Match 17:
-    - Upper: 1st vs 2nd, 3rd vs 4th
-    - Lower: 5th vs 6th, 7th vs 8th
+    - Upper: team5 vs team1, team3 vs team2
+    - Lower: team4 vs team8, team7 vs team6
 
     Returns a list of rounds, each containing matches (home_team, away_team)
     """
-    # Sort teams by points and goal difference to get standings
-    sorted_teams = sorted(teams_data, key=lambda x: (-x['score'], -x['GD']))
-
-    # Get the teams for upper and lower playoffs
-    upper_teams = [team['club'] for team in sorted_teams[:4]]
-    lower_teams = [team['club'] for team in sorted_teams[4:]]
+    # For the fixed playoff teams, we don't need to sort by standings
+    # Instead, we'll use the predefined assignments
+    upper_teams = [team_to_club.get('team5'), team_to_club.get('team1'),
+                   team_to_club.get('team3'), team_to_club.get('team2')]
+    lower_teams = [team_to_club.get('team4'), team_to_club.get('team8'),
+                   team_to_club.get('team7'), team_to_club.get('team6')]
 
     # Create playoff matches
     playoff_fixture = []
@@ -607,33 +607,35 @@ def standing():
     if completed_rounds >= 14:
         select_query = "SELECT * FROM playoff_teams ORDER BY created_at DESC LIMIT 1;"
         saved_playoff_teams = db_handler.fetch_data(select_query)
-        is_playoffs_active = len(saved_playoff_teams) > 0
+        is_playoffs_active = len(saved_playoff_teams) > 0 or completed_rounds > 14
 
-        # If we're in playoffs, sort teams differently
+        # If we're in playoffs, use the fixed team assignments instead of sorting by points
         if is_playoffs_active:
-            # Get the saved upper and lower playoff teams
-            upper_team_names = saved_playoff_teams[0][2]
-            lower_team_names = saved_playoff_teams[0][3]
+            # Define fixed playoff teams
+            fixed_upper_teams = [team_to_club.get('team5'), team_to_club.get('team1'),
+                                 team_to_club.get('team3'), team_to_club.get('team2')]
+            fixed_lower_teams = [team_to_club.get('team4'), team_to_club.get('team8'),
+                                 team_to_club.get('team7'), team_to_club.get('team6')]
 
-            # First sort all teams by points and goal difference
-            all_teams_sorted = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+            # Create dictionaries for each team for faster lookup
+            team_dict = {team['club']: team for team in team_data}
 
-            # Now split into upper and lower playoff teams, maintaining their relative order from all_teams_sorted
+            # Get upper teams and sort them by points and goal difference
             upper_teams = []
+            for team_name in fixed_upper_teams:
+                if team_name in team_dict:
+                    upper_teams.append(team_dict[team_name])
+            upper_teams_sorted = sorted(upper_teams, key=lambda x: (-x['score'], -x['GD']))
+
+            # Get lower teams and sort them by points and goal difference
             lower_teams = []
+            for team_name in fixed_lower_teams:
+                if team_name in team_dict:
+                    lower_teams.append(team_dict[team_name])
+            lower_teams_sorted = sorted(lower_teams, key=lambda x: (-x['score'], -x['GD']))
 
-            for team in all_teams_sorted:
-                if team['club'] in upper_team_names:
-                    upper_teams.append(team)
-                else:
-                    lower_teams.append(team)
-
-            # Sort each group internally by points and goal difference
-            upper_teams = sorted(upper_teams, key=lambda x: (-x['score'], -x['GD']))
-            lower_teams = sorted(lower_teams, key=lambda x: (-x['score'], -x['GD']))
-
-            # Combine them back, upper teams first (ranks 1-4), then lower teams (ranks 5-8)
-            sorted_data = upper_teams + lower_teams
+            # Combine the sorted upper and lower teams
+            sorted_data = upper_teams_sorted + lower_teams_sorted
         else:
             # Standard sorting during regular season
             sorted_data = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
@@ -658,8 +660,6 @@ def all_matches():
         teams_score_per_round.append(current_round_results)
 
     match_data = []
-    # rounds = generate_rounds(['בושנסקיניו', "JakirFC", "YNWA NAAMAN", "עבדים FC", "AC Malka",
-    #                              "Hapoel Sakal", "אינטרופ", "NoBody"])
     rounds = generate_rounds(
         [team_to_club.get('team1'), team_to_club.get('team2'), team_to_club.get('team3'), team_to_club.get('team4'),
          team_to_club.get('team5'), team_to_club.get('team6'), team_to_club.get('team7'), team_to_club.get('team8')])
@@ -670,71 +670,46 @@ def all_matches():
     # Get playoff fixtures if needed
     playoff_fixture = []
     if include_playoffs:
-        # Check if we have saved playoff team assignments
-        select_query = "SELECT * FROM playoff_teams ORDER BY created_at DESC LIMIT 1;"
-        saved_playoff_teams = db_handler.fetch_data(select_query)
+        # Use the fixed playoff team assignments regardless of database state
+        fixed_upper_teams = [team_to_club.get('team5'), team_to_club.get('team1'),
+                             team_to_club.get('team3'), team_to_club.get('team2')]
+        fixed_lower_teams = [team_to_club.get('team4'), team_to_club.get('team8'),
+                             team_to_club.get('team7'), team_to_club.get('team6')]
 
-        if saved_playoff_teams:
-            # Use the saved playoff teams
-            upper_team_names = saved_playoff_teams[0][2]
-            lower_team_names = saved_playoff_teams[0][3]
+        # Generate fixtures using the fixed team assignments
 
-            # Generate fixtures using the saved team assignments
+        # Match 15
+        round_15 = [
+            # Upper playoff
+            (fixed_upper_teams[0], fixed_upper_teams[2]),
+            (fixed_upper_teams[1], fixed_upper_teams[3]),
+            # Lower playoff
+            (fixed_lower_teams[0], fixed_lower_teams[2]),
+            (fixed_lower_teams[1], fixed_lower_teams[3])
+        ]
+        playoff_fixture.append(round_15)
 
-            # Match 15
-            round_15 = [
-                # Upper playoff
-                (upper_team_names[0], upper_team_names[2]),
-                (upper_team_names[1], upper_team_names[3]),
-                # Lower playoff
-                (lower_team_names[0], lower_team_names[2]),
-                (lower_team_names[1], lower_team_names[3])
-            ]
-            playoff_fixture.append(round_15)
+        # Match 16
+        round_16 = [
+            # Upper playoff
+            (fixed_upper_teams[0], fixed_upper_teams[3]),
+            (fixed_upper_teams[1], fixed_upper_teams[2]),
+            # Lower playoff
+            (fixed_lower_teams[0], fixed_lower_teams[3]),
+            (fixed_lower_teams[1], fixed_lower_teams[2])
+        ]
+        playoff_fixture.append(round_16)
 
-            # Match 16
-            round_16 = [
-                # Upper playoff
-                (upper_team_names[0], upper_team_names[3]),
-                (upper_team_names[1], upper_team_names[2]),
-                # Lower playoff
-                (lower_team_names[0], lower_team_names[3]),
-                (lower_team_names[1], lower_team_names[2])
-            ]
-            playoff_fixture.append(round_16)
-
-            # Match 17
-            round_17 = [
-                # Upper playoff
-                (upper_team_names[0], upper_team_names[1]),
-                (upper_team_names[2], upper_team_names[3]),
-                # Lower playoff
-                (lower_team_names[0], lower_team_names[1]),
-                (lower_team_names[2], lower_team_names[3])
-            ]
-            playoff_fixture.append(round_17)
-        else:
-            # Get standings for playoff generation
-            select_query = "SELECT * FROM clubs_info"
-            club_results = db_handler.fetch_data(select_query)
-            team_data = []
-            for team in club_results:
-                my_club = club(team[0], team[1], team[2], team[3], team[4], team[5], team[6], team[7])
-                team_data.append({
-                    'club': my_club.name,
-                    'MP': my_club.GetMP(),
-                    'W': my_club.win_count,
-                    'D': my_club.draw_count,
-                    'L': my_club.lose_count,
-                    'GF': my_club.GF,
-                    'GA': my_club.GA,
-                    'GD': my_club.GetGD(),
-                    'score': my_club.getScore(),
-                    'last_3': my_club.last_three_matches
-                })
-
-            # Generate playoff fixtures
-            playoff_fixture, _, _ = generate_playoff_matches(team_data)
+        # Match 17
+        round_17 = [
+            # Upper playoff
+            (fixed_upper_teams[0], fixed_upper_teams[1]),
+            (fixed_upper_teams[2], fixed_upper_teams[3]),
+            # Lower playoff
+            (fixed_lower_teams[0], fixed_lower_teams[1]),
+            (fixed_lower_teams[2], fixed_lower_teams[3])
+        ]
+        playoff_fixture.append(round_17)
 
     for round, matches in enumerate(rounds):
         list_match_of_current_round = []
@@ -819,78 +794,66 @@ def playoffs():
             'last_3': my_club.last_three_matches
         })
 
-    # Sort teams by points and goal difference
-    sorted_teams = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
+    # Use fixed playoff team assignments regardless of database state
+    fixed_upper_teams = [team_to_club.get('team5'), team_to_club.get('team1'),
+                         team_to_club.get('team3'), team_to_club.get('team2')]
+    fixed_lower_teams = [team_to_club.get('team4'), team_to_club.get('team8'),
+                         team_to_club.get('team7'), team_to_club.get('team6')]
 
-    if saved_playoff_teams:
-        # Use the saved playoff teams
-        upper_team_names = saved_playoff_teams[0][2]
-        lower_team_names = saved_playoff_teams[0][3]
+    # Create team_dict for faster lookup
+    team_dict = {team['club']: team for team in team_data}
 
-        # Get the full team info for each playoff team
-        upper_teams = []
-        lower_teams = []
+    # Get the team info for each playoff team
+    unsorted_upper_teams = []
+    unsorted_lower_teams = []
 
-        # Extract teams in the correct order based on saved team names
-        for team_name in upper_team_names:
-            for team in sorted_teams:
-                if team['club'] == team_name:
-                    upper_teams.append(team)
-                    break
+    for team_name in fixed_upper_teams:
+        if team_name in team_dict:
+            unsorted_upper_teams.append(team_dict[team_name])
 
-        for team_name in lower_team_names:
-            for team in sorted_teams:
-                if team['club'] == team_name:
-                    lower_teams.append(team)
-                    break
+    for team_name in fixed_lower_teams:
+        if team_name in team_dict:
+            unsorted_lower_teams.append(team_dict[team_name])
 
-        # Generate playoff fixtures using the saved team assignments
-        playoff_fixture = []
+    # Sort teams within each group by points and goal difference
+    upper_teams = sorted(unsorted_upper_teams, key=lambda x: (-x['score'], -x['GD']))
+    lower_teams = sorted(unsorted_lower_teams, key=lambda x: (-x['score'], -x['GD']))
 
-        # Match 15
-        round_15 = [
-            # Upper playoff
-            (upper_team_names[0], upper_team_names[2]),
-            (upper_team_names[1], upper_team_names[3]),
-            # Lower playoff
-            (lower_team_names[0], lower_team_names[2]),
-            (lower_team_names[1], lower_team_names[3])
-        ]
-        playoff_fixture.append(round_15)
+    # Generate playoff fixtures using the fixed team assignments (not sorted)
+    playoff_fixture = []
 
-        # Match 16
-        round_16 = [
-            # Upper playoff
-            (upper_team_names[0], upper_team_names[3]),
-            (upper_team_names[1], upper_team_names[2]),
-            # Lower playoff
-            (lower_team_names[0], lower_team_names[3]),
-            (lower_team_names[1], lower_team_names[2])
-        ]
-        playoff_fixture.append(round_16)
+    # Match 15
+    round_15 = [
+        # Upper playoff
+        (fixed_upper_teams[0], fixed_upper_teams[2]),
+        (fixed_upper_teams[1], fixed_upper_teams[3]),
+        # Lower playoff
+        (fixed_lower_teams[0], fixed_lower_teams[2]),
+        (fixed_lower_teams[1], fixed_lower_teams[3])
+    ]
+    playoff_fixture.append(round_15)
 
-        # Match 17
-        round_17 = [
-            # Upper playoff
-            (upper_team_names[0], upper_team_names[1]),
-            (upper_team_names[2], upper_team_names[3]),
-            # Lower playoff
-            (lower_team_names[0], lower_team_names[1]),
-            (lower_team_names[2], lower_team_names[3])
-        ]
-        playoff_fixture.append(round_17)
-    else:
-        # Generate teams and fixtures as before
-        # Split into upper and lower teams based on current standings
-        upper_teams = sorted_teams[:4]
-        lower_teams = sorted_teams[4:]
+    # Match 16
+    round_16 = [
+        # Upper playoff
+        (fixed_upper_teams[0], fixed_upper_teams[3]),
+        (fixed_upper_teams[1], fixed_upper_teams[2]),
+        # Lower playoff
+        (fixed_lower_teams[0], fixed_lower_teams[3]),
+        (fixed_lower_teams[1], fixed_lower_teams[2])
+    ]
+    playoff_fixture.append(round_16)
 
-        # Get team names for generating fixtures
-        upper_team_names = [team['club'] for team in upper_teams]
-        lower_team_names = [team['club'] for team in lower_teams]
-
-        # Create playoff fixtures
-        playoff_fixture, _, _ = generate_playoff_matches(team_data)
+    # Match 17
+    round_17 = [
+        # Upper playoff
+        (fixed_upper_teams[0], fixed_upper_teams[1]),
+        (fixed_upper_teams[2], fixed_upper_teams[3]),
+        # Lower playoff
+        (fixed_lower_teams[0], fixed_lower_teams[1]),
+        (fixed_lower_teams[2], fixed_lower_teams[3])
+    ]
+    playoff_fixture.append(round_17)
 
     # Get scores if available
     select_query = "SELECT * FROM rounds_score"
@@ -978,31 +941,11 @@ def process_form():
 
     # If we just completed round 14, save the playoff team assignments
     if next_round == 15:
-        # Get current standings
-        select_query = "SELECT * FROM clubs_info"
-        club_results = db_handler.fetch_data(select_query)
-        team_data = []
-        for team in club_results:
-            my_club = club(team[0], team[1], team[2], team[3], team[4], team[5], team[6], team[7])
-            team_data.append({
-                'club': my_club.name,
-                'MP': my_club.GetMP(),
-                'W': my_club.win_count,
-                'D': my_club.draw_count,
-                'L': my_club.lose_count,
-                'GF': my_club.GF,
-                'GA': my_club.GA,
-                'GD': my_club.GetGD(),
-                'score': my_club.getScore(),
-                'last_3': my_club.last_three_matches
-            })
-
-        # Sort teams by points and goal difference
-        sorted_teams = sorted(team_data, key=lambda x: (-x['score'], -x['GD']))
-
-        # Split into upper and lower teams
-        upper_teams = [team['club'] for team in sorted_teams[:4]]
-        lower_teams = [team['club'] for team in sorted_teams[4:]]
+        # Use fixed team assignments instead of standings-based
+        upper_teams = [team_to_club.get('team5'), team_to_club.get('team1'),
+                       team_to_club.get('team3'), team_to_club.get('team2')]
+        lower_teams = [team_to_club.get('team4'), team_to_club.get('team8'),
+                       team_to_club.get('team7'), team_to_club.get('team6')]
 
         # Save to database
         insert_playoff_query = """
