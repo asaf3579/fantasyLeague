@@ -26,23 +26,23 @@ club_logos = {
 
 club_to_team = {
     'עבדים FC': 'team8',
-    'Hapoel Sakal': 'team6',
-    'JakirFC': 'team3',
-    'בושנסקיניו': 'team2',
-    'YNWA NAAMAN': 'team1',
+    'Hapoel Sakal': 'team2',
+    'JakirFC': 'team6',
+    'בושנסקיניו': 'team4',
+    'YNWA NAAMAN': 'team3',
     'לילו ועוד 10': 'team7',
-    'AC MALKA': 'team4',
+    'AC MALKA': 'team1',
     'בזויים FC': 'team5',
 }
 
 team_to_club = {
     'team8': 'עבדים FC',
-    'team6': 'Hapoel Sakal',
-    'team3': 'JakirFC',
-    'team2': 'בושנסקיניו',
-    'team1': 'YNWA NAAMAN',
+    'team2': 'Hapoel Sakal',
+    'team6': 'JakirFC',
+    'team4': 'בושנסקיניו',
+    'team3': 'YNWA NAAMAN',
     'team7': 'לילו ועוד 10',
-    'team4': 'AC MALKA',
+    'team1': 'AC MALKA',
     'team5': 'בזויים FC',
 
 }
